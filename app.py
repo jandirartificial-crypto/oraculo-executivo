@@ -1,8 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
-import random
 from datetime import datetime
-import time
 
 # ============================================
 # CONFIGURAÇÃO INICIAL E SEGREDOS
@@ -23,16 +21,14 @@ except Exception as e:
     st.stop()
 
 # ============================================
-# CSS PERSONALIZADO PARA ESTABILIDADE
+# CSS PERSONALIZADO
 # ============================================
 st.markdown("""
     <style>
-        /* Reset e estabilização */
         .stApp {
             background: linear-gradient(135deg, #1a1e24 0%, #2d3439 100%);
         }
         
-        /* Cards das cartas - design profissional */
         .carta-card {
             background: linear-gradient(145deg, #2c3e50, #1e2a36);
             border: 2px solid #4a5568;
@@ -46,13 +42,12 @@ st.markdown("""
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 280px;
+            min-height: 250px;
         }
         
         .carta-card:hover {
             transform: translateY(-5px);
             border-color: #9f7aea;
-            box-shadow: 0 15px 30px rgba(159, 122, 234, 0.2);
         }
         
         .carta-invertida {
@@ -87,14 +82,6 @@ st.markdown("""
             margin-right: auto;
         }
         
-        .carta-palavras {
-            font-size: 12px;
-            color: #b0b0b0;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
         .carta-orientacao {
             margin-top: 8px;
             font-size: 11px;
@@ -103,7 +90,6 @@ st.markdown("""
             letter-spacing: 2px;
         }
         
-        /* Estilo para interpretação */
         .interpretacao-box {
             background: rgba(0,0,0,0.2);
             border-left: 5px solid #9f7aea;
@@ -115,7 +101,6 @@ st.markdown("""
             color: #e0e0e0;
         }
         
-        /* Botões personalizados */
         .stButton button {
             background: linear-gradient(135deg, #9f7aea, #6b46c1);
             color: white;
@@ -130,6 +115,15 @@ st.markdown("""
             background: linear-gradient(135deg, #b794f4, #805ad5);
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(159, 122, 234, 0.4);
+        }
+        
+        .instrucoes-box {
+            background: rgba(159, 122, 234, 0.1);
+            border: 1px solid #9f7aea;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #e0e0e0;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -284,112 +278,144 @@ BARALHO_CIGANO = {
 }
 
 # ============================================
-# TIRAGENS PRÉ-DEFINIDAS
+# FUNÇÕES PARA VALIDAÇÃO E BUSCA DE CARTAS
 # ============================================
-TIPOS_TIRAGEM = {
-    "3 Cartas (Passado, Presente, Futuro)": {
-        "descricao": "Visão geral da jornada do consulente",
-        "num_cartas": 3,
-        "posicoes": ["Passado", "Presente", "Futuro"]
-    },
-    "5 Cartas (Cruz Cigana)": {
-        "descricao": "Análise completa: situação, obstáculo, conselho, resultado, síntese",
-        "num_cartas": 5,
-        "posicoes": ["Situação Atual", "Obstáculo", "Conselho", "Resultado", "Síntese"]
-    },
-    "7 Cartas (Estrela)": {
-        "descricao": "Tiragem espiritual: corpo, mente, espírito, emoções, trabalho, amor, dinheiro",
-        "num_cartas": 7,
-        "posicoes": ["Corpo/Saúde", "Mente/Emoções", "Espírito", "Amor", "Trabalho", "Dinheiro", "Família"]
+def buscar_carta_por_nome(nome_busca):
+    """Busca uma carta pelo nome (case insensitive)"""
+    nome_busca = nome_busca.strip().lower()
+    
+    # Mapeamento de variações comuns
+    variacoes = {
+        "cavaleiro": "O Cavaleiro",
+        "cavalo": "O Cavaleiro",
+        "trevo": "O Trevo",
+        "navio": "O Navio",
+        "barco": "O Navio",
+        "casa": "A Casa",
+        "arvore": "A Árvore",
+        "nuvens": "As Nuvens",
+        "nuvem": "As Nuvens",
+        "serpente": "A Serpente",
+        "cobra": "A Serpente",
+        "caixao": "O Caixão",
+        "buque": "O Buquê",
+        "flores": "O Buquê",
+        "foice": "A Foice",
+        "chicote": "O Chicote",
+        "passaros": "Os Pássaros",
+        "passaro": "Os Pássaros",
+        "crianca": "A Criança",
+        "raposa": "A Raposa",
+        "urso": "O Urso",
+        "estrelas": "As Estrelas",
+        "cegonha": "A Cegonha",
+        "cachorro": "O Cachorro",
+        "cao": "O Cachorro",
+        "torre": "A Torre",
+        "jardim": "O Jardim",
+        "montanha": "A Montanha",
+        "caminho": "O Caminho",
+        "rato": "O Rato",
+        "coracao": "O Coração",
+        "alianca": "A Aliança",
+        "livro": "O Livro",
+        "carta": "A Carta",
+        "homem": "O Homem",
+        "mulher": "A Mulher",
+        "lirios": "Os Lírios",
+        "sol": "O Sol",
+        "lua": "A Lua",
+        "chave": "A Chave",
+        "peixe": "O Peixe",
+        "ancora": "A Âncora",
+        "cruz": "A Cruz"
     }
-}
+    
+    # Verificar se é uma variação
+    if nome_busca in variacoes:
+        nome_correto = variacoes[nome_busca]
+        for id, carta in BARALHO_CIGANO.items():
+            if carta["nome"].lower() == nome_correto.lower():
+                return id, carta
+    
+    # Busca exata
+    for id, carta in BARALHO_CIGANO.items():
+        if carta["nome"].lower() == nome_busca:
+            return id, carta
+    
+    # Busca parcial
+    for id, carta in BARALHO_CIGANO.items():
+        if nome_busca in carta["nome"].lower():
+            return id, carta
+    
+    return None, None
+
+def validar_carta(nome_carta):
+    """Valida se a carta existe e retorna os dados"""
+    id, carta = buscar_carta_por_nome(nome_carta)
+    if carta:
+        return True, id, carta
+    return False, None, None
 
 # ============================================
-# FUNÇÃO PARA EXIBIR CARTAS SEM IMAGENS
+# FUNÇÃO PARA EXIBIR CARTAS
 # ============================================
-def criar_card_carta(carta):
-    """Cria um card HTML para exibir a carta sem usar imagens"""
+def criar_card_carta(carta, posicao, orientacao):
+    """Cria um card HTML para exibir a carta"""
     
-    # Determinar classe CSS baseada na orientação
     classe_carta = "carta-card"
-    if carta['orientacao'] == 'invertida':
+    if orientacao == 'invertida':
         classe_carta += " carta-invertida"
     
-    # Símbolo de orientação
-    simbolo_orientacao = " 🔄" if carta['orientacao'] == 'invertida' else ""
+    simbolo_orientacao = " 🔄" if orientacao == 'invertida' else ""
     
-    # Significado resumido para exibição
-    significado = carta['significado_invertido'] if carta['orientacao'] == 'invertida' else carta['significado_normal']
+    significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
     significado_resumo = significado[:80] + "..." if len(significado) > 80 else significado
     
     html_card = f"""
     <div class="{classe_carta}">
         <div class="carta-simbolo">{carta['simbolo']}</div>
         <div class="carta-nome">{carta['nome']}{simbolo_orientacao}</div>
-        <div class="carta-posicao">📍 {carta['posicao']}</div>
+        <div class="carta-posicao">📍 {posicao}</div>
         <div style="font-size: 13px; color: #d0d0d0; padding: 0 10px;">
             {significado_resumo}
         </div>
         <div class="carta-palavras">{carta['palavras_chave']}</div>
-        <div class="carta-orientacao">{carta['orientacao'].upper()}</div>
+        <div class="carta-orientacao">{orientacao.upper()}</div>
     </div>
     """
     return html_card
 
-def sortear_cartas(tipo_tiragem):
-    """
-    Sorteia as cartas de acordo com o tipo de tiragem
-    """
-    config = TIPOS_TIRAGEM[tipo_tiragem]
-    indices_sorteados = random.sample(list(BARALHO_CIGANO.keys()), config["num_cartas"])
-    
-    cartas_selecionadas = []
-    for i, idx in enumerate(indices_sorteados):
-        orientacao = random.choice(["normal", "invertida"])
-        carta = BARALHO_CIGANO[idx].copy()
-        carta["id"] = idx
-        carta["orientacao"] = orientacao
-        carta["posicao"] = config["posicoes"][i]
-        cartas_selecionadas.append(carta)
-    
-    return cartas_selecionadas
-
 # ============================================
-# FUNÇÃO PRINCIPAL DO GEMINI - TOTALMENTE CORRIGIDA
+# FUNÇÃO PRINCIPAL DO GEMINI
 # ============================================
-def interpretar_tiragem(cartas, pergunta_usuario, historico=""):
-    """
-    Envia a tiragem para o Gemini e retorna a interpretação
-    """
+def interpretar_tiragem(cartas, pergunta_usuario):
+    """Envia a tiragem para o Gemini e retorna a interpretação"""
     try:
-        # LISTA DE MODELOS TESTADOS E CONFIRMADOS:
-        # 1. 'gemini-pro' - MAIS ESTÁVEL (RECOMENDADO)
-        # 2. 'models/gemini-1.0-pro' - Versão antiga mas funcional
-        # 3. 'models/gemini-1.5-flash' - Rápido (se disponível)
-        
-        # USANDO O MODELO MAIS CONFIÁVEL:
         modelo = genai.GenerativeModel('gemini-pro')
         
-        # Construir prompt mais conciso para evitar erros
+        # Construir descrição das cartas
         cartas_descricao = []
-        for carta in cartas:
-            significado = carta['significado_invertido'] if carta['orientacao'] == 'invertida' else carta['significado_normal']
+        for carta_info in cartas:
+            carta = carta_info['carta']
             cartas_descricao.append(
-                f"{carta['posicao']}: {carta['nome']} ({carta['orientacao']}) - {carta['palavras_chave']}"
+                f"{carta_info['posicao']}: {carta['nome']} ({carta_info['orientacao']}) - {carta['palavras_chave']}"
             )
         
         prompt = f"""Você é uma cartomante especialista em Baralho Cigano (Lenormand).
 
+O consulente fez uma tiragem física de 3 cartas com seu próprio baralho.
+
 PERGUNTA DO CONSULENTE: {pergunta_usuario if pergunta_usuario else "Consulta geral"}
 
-CARTAS SORTEADAS:
+CARTAS TIRADAS (na ordem: Passado, Presente, Futuro):
 {chr(10).join(cartas_descricao)}
 
 Faça uma leitura empática, positiva e detalhada destas cartas. 
-Conecte os significados entre si. Use linguagem acolhedora.
-MÍNIMO DE 8 LINHAS DE INTERPRETAÇÃO."""
+Conecte os significados entre si, mostrando a evolução do Passado para o Presente e para o Futuro.
+Use linguagem acolhedora e pessoal.
+MÍNIMO DE 10 LINHAS DE INTERPRETAÇÃO."""
         
-        # Configurações de geração
         generation_config = {
             "temperature": 0.8,
             "top_p": 0.95,
@@ -397,7 +423,6 @@ MÍNIMO DE 8 LINHAS DE INTERPRETAÇÃO."""
             "max_output_tokens": 1024,
         }
         
-        # Gerar resposta
         response = modelo.generate_content(
             prompt,
             generation_config=generation_config
@@ -406,101 +431,189 @@ MÍNIMO DE 8 LINHAS DE INTERPRETAÇÃO."""
         if response and response.text:
             return response.text
         else:
-            return "🔮 As cartas revelam um momento de reflexão e autoconhecimento. Confie no seu caminho e na sua intuição."
+            return gerar_fallback(cartas)
             
     except Exception as e:
-        # FALLBACK AMIGÁVEL - SEMPRE FUNCIONA MESMO SEM API
-        nomes_cartas = [f"{c['nome']} ({c['orientacao']})" for c in cartas]
-        
-        mensagem_fallback = f"""🔮 **Sua Tiragem de Baralho Cigano**
+        return gerar_fallback(cartas)
 
-✨ Cartas reveladas: {', '.join(nomes_cartas)}
+def gerar_fallback(cartas):
+    """Gera uma interpretação de fallback quando a API falha"""
+    nomes_cartas = [f"{c['carta']['nome']} ({c['orientacao']})" for c in cartas]
+    
+    return f"""🔮 **Sua Tiragem de Baralho Cigano**
 
-O Baralho Cigano mostra que você está em um momento especial de descobertas e aprendizados. 
-Cada carta traz uma mensagem única sobre sua jornada.
+✨ **Cartas reveladas:**
+• Passado: {cartas[0]['carta']['nome']} ({cartas[0]['orientacao']})
+• Presente: {cartas[1]['carta']['nome']} ({cartas[1]['orientacao']})
+• Futuro: {cartas[2]['carta']['nome']} ({cartas[2]['orientacao']})
 
 💫 **Mensagem das cartas:**
-• Confie no fluxo da vida e nas sincronicidades
-• Mantenha o coração aberto para as possibilidades
-• Sua intuição é sua maior guia neste momento
 
-🌟 Lembre-se: as cartas são um espelho da sua alma. 
-A verdadeira sabedoria já está dentro de você.
+Sua tiragem mostra uma jornada de evolução e aprendizado. 
+As cartas que você tirou fisicamente carregam sua energia única e pessoal.
 
-🙏 Agradeça por esta orientação e siga com fé no seu caminho."""
-        
-        return mensagem_fallback
+**Passado - {cartas[0]['carta']['nome']}:** 
+{cartas[0]['carta']['significado_invertido'] if cartas[0]['orientacao'] == 'invertida' else cartas[0]['carta']['significado_normal']}
+
+**Presente - {cartas[1]['carta']['nome']}:** 
+{cartas[1]['carta']['significado_invertido'] if cartas[1]['orientacao'] == 'invertida' else cartas[1]['carta']['significado_normal']}
+
+**Futuro - {cartas[2]['carta']['nome']}:** 
+{cartas[2]['carta']['significado_invertido'] if cartas[2]['orientacao'] == 'invertida' else cartas[2]['carta']['significado_normal']}
+
+🌟 Confie na sabedoria das cartas e na sua intuição. O Baralho Cigano é um espelho da sua alma.
+
+🙏 Lembre-se: você tem o poder de criar seu próprio destino."""
 
 # ============================================
-# INTERFACE PRINCIPAL STREAMLIT
+# INTERFACE PRINCIPAL
 # ============================================
 def main():
     st.title("🔮 Baralho Cigano Online")
     st.markdown("---")
     
+    # Caixa de instruções
+    st.markdown("""
+    <div class="instrucoes-box">
+        <h4>🎴 Como usar:</h4>
+        <ol>
+            <li>Pegue seu baralho físico de Baralho Cigano (36 cartas)</li>
+            <li>Embaralhe e faça sua pergunta mentalmente</li>
+            <li>Tire 3 cartas fisicamente na ordem: <strong>PASSADO, PRESENTE, FUTURO</strong></li>
+            <li>Insira o nome das cartas abaixo e escolha se estão normais ou invertidas</li>
+            <li>Clique em "INTERPRETAR CARTAS" para receber sua leitura</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # Inicializar session state
-    if 'cartas_sorteadas' not in st.session_state:
-        st.session_state.cartas_sorteadas = None
+    if 'cartas_adicionadas' not in st.session_state:
+        st.session_state.cartas_adicionadas = []
     if 'interpretacao' not in st.session_state:
         st.session_state.interpretacao = None
-    if 'historico' not in st.session_state:
-        st.session_state.historico = []
+    if 'pergunta' not in st.session_state:
+        st.session_state.pergunta = ""
     
-    # Sidebar - Configurações
+    # Sidebar - Instruções rápidas
     with st.sidebar:
-        st.header("⚙️ Configurações")
-        
-        # Escolha do tipo de tiragem
-        tipo_tiragem = st.selectbox(
-            "Escolha o tipo de tiragem:",
-            list(TIPOS_TIRAGEM.keys()),
-            key="tipo_tiragem_selector"
-        )
-        
+        st.header("🎴 Suas Cartas")
         st.markdown("---")
-        st.subheader("📊 Sobre as cartas")
-        st.info(f"Total: 36 lâminas do Baralho Cigano tradicional")
         
-        # Botão de nova consulta
-        if st.button("🔄 Nova Consulta", key="nova_consulta"):
-            for key in ['cartas_sorteadas', 'interpretacao', 'pergunta_atual']:
-                if key in st.session_state:
-                    st.session_state[key] = None
-            st.session_state.historico = []
+        # Lista de cartas adicionadas
+        if st.session_state.cartas_adicionadas:
+            st.subheader("📋 Cartas selecionadas:")
+            for i, carta_info in enumerate(st.session_state.cartas_adicionadas):
+                orientacao_simbolo = "🔄" if carta_info['orientacao'] == 'invertida' else "⬆️"
+                st.write(f"{i+1}. {carta_info['carta']['nome']} {orientacao_simbolo}")
+                st.write(f"   📍 {carta_info['posicao']}")
+                st.markdown("---")
+        
+        # Botão para limpar tudo
+        if st.button("🗑️ Nova Tiragem", use_container_width=True):
+            st.session_state.cartas_adicionadas = []
+            st.session_state.interpretacao = None
+            st.session_state.pergunta = ""
             st.rerun()
     
-    # Área principal
-    col1, col2 = st.columns([2, 1])
+    # Área principal - Entrada das cartas
+    st.subheader("🃏 Insira suas 3 cartas na ordem tirada")
     
-    with col1:
-        pergunta = st.text_area(
-            "💭 Qual sua pergunta ou intenção para esta consulta?",
-            placeholder="Ex: Como está minha vida amorosa? O que vem pela frente no trabalho?",
-            height=100,
-            key="pergunta_input"
-        )
+    # Pergunta do consulente
+    pergunta = st.text_area(
+        "💭 Qual sua pergunta ou intenção para esta consulta?",
+        value=st.session_state.pergunta,
+        placeholder="Ex: Como está minha vida amorosa? O que vem pela frente no trabalho?",
+        height=80,
+        key="pergunta_input"
+    )
+    st.session_state.pergunta = pergunta
     
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🃏 **TIRAR CARTAS**", use_container_width=True, type="primary", key="tirar_cartas"):
-            with st.spinner("🎴 Embaralhando e cortando o baralho..."):
-                time.sleep(0.5)
-                st.session_state.cartas_sorteadas = sortear_cartas(tipo_tiragem)
-                st.session_state.interpretacao = None
-                st.session_state.pergunta_atual = pergunta
-                st.rerun()
+    # Criar 3 linhas para entrada das cartas
+    posicoes = ["PASSADO", "PRESENTE", "FUTURO"]
     
-    # Exibir cartas sorteadas
-    if st.session_state.cartas_sorteadas:
+    for i, posicao in enumerate(posicoes):
+        st.markdown(f"### {i+1}ª Carta - {posicao}")
+        
+        col1, col2, col3 = st.columns([2, 1, 1])
+        
+        with col1:
+            nome_carta = st.text_input(
+                f"Nome da carta",
+                placeholder="Ex: O Cavaleiro, A Casa, O Sol...",
+                key=f"carta_nome_{i}",
+                value=st.session_state.get(f"carta_nome_{i}_value", "")
+            )
+        
+        with col2:
+            orientacao = st.selectbox(
+                "Orientação",
+                ["normal", "invertida"],
+                key=f"carta_orientacao_{i}",
+                index=0
+            )
+        
+        with col3:
+            if st.button(f"✅ Adicionar {posicao}", key=f"btn_adicionar_{i}"):
+                if nome_carta:
+                    valida, id_carta, carta = validar_carta(nome_carta)
+                    
+                    if valida:
+                        # Verificar se já não adicionou esta posição
+                        posicao_ja_adicionada = False
+                        for c in st.session_state.cartas_adicionadas:
+                            if c['posicao'] == posicao:
+                                posicao_ja_adicionada = True
+                                break
+                        
+                        if not posicao_ja_adicionada:
+                            # Adicionar carta
+                            st.session_state.cartas_adicionadas.append({
+                                'carta': carta,
+                                'id': id_carta,
+                                'orientacao': orientacao,
+                                'posicao': posicao
+                            })
+                            # Ordenar por posição
+                            ordem_posicoes = {"PASSADO": 0, "PRESENTE": 1, "FUTURO": 2}
+                            st.session_state.cartas_adicionadas.sort(key=lambda x: ordem_posicoes[x['posicao']])
+                            
+                            st.session_state[f"carta_nome_{i}_value"] = ""
+                            st.success(f"✅ {carta['nome']} adicionada ao {posicao}!")
+                            st.rerun()
+                        else:
+                            st.warning(f"⚠️ Você já adicionou uma carta para {posicao}")
+                    else:
+                        # Sugerir cartas similares
+                        st.error(f"❌ Carta '{nome_carta}' não encontrada!")
+                        
+                        # Buscar sugestões
+                        sugestoes = []
+                        for id_c, carta_c in BARALHO_CIGANO.items():
+                            if nome_carta.lower() in carta_c['nome'].lower()[:len(nome_carta)]:
+                                sugestoes.append(carta_c['nome'])
+                        
+                        if sugestoes:
+                            st.info(f"💡 Você quis dizer: {', '.join(sugestoes[:3])}?")
+                else:
+                    st.warning("⚠️ Digite o nome da carta")
+        
         st.markdown("---")
+    
+    # Verificar se todas as 3 cartas foram adicionadas
+    if len(st.session_state.cartas_adicionadas) == 3:
+        st.success("✅ Todas as 3 cartas foram adicionadas com sucesso!")
+        
+        # Exibir as cartas adicionadas
         st.subheader("🃏 Suas Cartas")
+        cols = st.columns(3)
         
-        # Layout em grid para as cartas
-        cols = st.columns(len(st.session_state.cartas_sorteadas))
-        
-        for idx, (col, carta) in enumerate(zip(cols, st.session_state.cartas_sorteadas)):
+        for idx, (col, carta_info) in enumerate(zip(cols, st.session_state.cartas_adicionadas)):
             with col:
-                html_card = criar_card_carta(carta)
+                html_card = criar_card_carta(
+                    carta_info['carta'],
+                    carta_info['posicao'],
+                    carta_info['orientacao']
+                )
                 st.markdown(html_card, unsafe_allow_html=True)
         
         # Botão para interpretação
@@ -508,22 +621,17 @@ def main():
         col1, col2, col3 = st.columns([1, 2, 1])
         
         with col2:
-            if st.button("🔮 **INTERPRETAR CARTAS**", use_container_width=True, key="interpretar"):
+            if st.button("🔮 **INTERPRETAR CARTAS**", use_container_width=True, type="primary"):
                 with st.spinner("🔮 Consultando os mistérios do Baralho Cigano..."):
-                    
-                    # Interpretar com fallback automático
                     interpretacao = interpretar_tiragem(
-                        st.session_state.cartas_sorteadas,
-                        st.session_state.get('pergunta_atual', ''),
-                        ""
+                        st.session_state.cartas_adicionadas,
+                        st.session_state.pergunta
                     )
-                    
                     st.session_state.interpretacao = interpretacao
-                    
-                    # Salvar no histórico
-                    resumo = f"Tiragem {datetime.now().strftime('%d/%m/%y %H:%M')}: {[c['nome'] for c in st.session_state.cartas_sorteadas]}"
-                    st.session_state.historico.append(resumo)
                     st.rerun()
+    
+    elif len(st.session_state.cartas_adicionadas) > 0:
+        st.info(f"📌 Você adicionou {len(st.session_state.cartas_adicionadas)} de 3 cartas. Complete a tiragem.")
     
     # Exibir interpretação
     if st.session_state.interpretacao:
@@ -536,16 +644,12 @@ def main():
             st.markdown('</div>', unsafe_allow_html=True)
             st.caption("🙏 Lembre-se: As cartas são um guia, não uma verdade absoluta. O livre arbítrio sempre prevalece.")
         
-        # Feedback
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("👍 Útil", key="feedback_util"):
-                st.success("✨ Obrigado pelo feedback! Sua energia ajuda a fortalecer nossa conexão.")
-        with col2:
-            if st.button("🔄 Nova consulta", key="nova_consulta_pos"):
-                for key in ['cartas_sorteadas', 'interpretacao', 'pergunta_atual']:
-                    st.session_state[key] = None
-                st.rerun()
+        # Botão para nova consulta
+        if st.button("🔄 Nova Tiragem", key="nova_consulta_fim"):
+            st.session_state.cartas_adicionadas = []
+            st.session_state.interpretacao = None
+            st.session_state.pergunta = ""
+            st.rerun()
     
     # Rodapé
     st.markdown("---")
@@ -554,7 +658,7 @@ def main():
         <div style='text-align: center; color: #a0a0a0; padding: 20px;'>
             <small>
             🔮 Baralho Cigano Tradicional • 36 Lâminas • Interpretação com IA Gemini<br>
-            ⚡ Desenvolvido com respeito à tradição cigana e tecnologia de ponta<br>
+            ⚡ Use seu baralho físico, insira as cartas tiradas<br>
             ✨ Cada consulta é única e pessoal
             </small>
         </div>
