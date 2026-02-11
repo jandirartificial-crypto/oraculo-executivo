@@ -1,70 +1,412 @@
 import streamlit as st
 import google.generativeai as genai
+import random
+from PIL import Image
+import numpy as np
+import os
+from datetime import datetime
+import json
 
-# Configuração da Página para manter o estilo minimalista e profissional
-st.set_page_config(page_title="Executivo do Tarô", page_icon="🃏", layout="centered")
+# ============================================
+# CONFIGURAÇÃO INICIAL E SEGREDOS
+# ============================================
+st.set_page_config(
+    page_title="🔮 Baralho Cigano - Consulta Online",
+    page_icon="🃏",
+    layout="centered"
+)
 
-# Estilização básica para cores neutras
-st.markdown("""
-    <style>
-    .main { background-color: #f8f9fa; }
-    .stButton>button { background-color: #2c3e50; color: white; width: 100%; }
-    </style>
-    """, unsafe_allow_html=True)
+# Configurar API do Gemini (via Streamlit Secrets)
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+genai.configure(api_key=GOOGLE_API_KEY)
 
-st.title("🏛️ Oráculo Digital: Executivo do Tarô")
-st.write("Bem-vindo à sua consultoria arquetípica de alto nível.")
+# ============================================
+# BASE DE CONHECIMENTO - 36 CARTAS DO BARALHO CIGANO
+# ============================================
+BARALHO_CIGANO = {
+    1: {"nome": "O Cavaleiro", "simbolo": "♞", "palavras_chave": "Notícias, movimento, chegada",
+        "significado_normal": "Notícias chegando, visitas, movimento rápido. Indica mensagens importantes a caminho.",
+        "significado_invertido": "Atrasos, notícias adiadas, visitas indesejadas ou cancelamento de planos."},
+    
+    2: {"nome": "O Trevo", "simbolo": "🍀", "palavras_chave": "Sorte, esperança, brevidade",
+        "significado_normal": "Pequena sorte, oportunidades passageiras. Momento de esperança e otimismo.",
+        "significado_invertido": "Sorte atrasada, pequenas frustrações. Cuidado com expectativas irreais."},
+    
+    3: {"nome": "O Navio", "simbolo": "⛵", "palavras_chave": "Viagem, comércio, distância",
+        "significado_normal": "Viagens, negócios à distância, mudanças. Expansão de horizontes.",
+        "significado_invertido": "Viagem adiada, problemas no transporte, negócios no exterior com dificuldades."},
+    
+    4: {"nome": "A Casa", "simbolo": "🏠", "palavras_chave": "Lar, família, estabilidade",
+        "significado_normal": "Segurança doméstica, harmonia familiar, questões imobiliárias.",
+        "significado_invertido": "Problemas em casa, desarmonia familiar, necessidade de mudança."},
+    
+    5: {"nome": "A Árvore", "simbolo": "🌳", "palavras_chave": "Saúde, crescimento, ancestralidade",
+        "significado_normal": "Boa saúde, crescimento pessoal, conexão com raízes familiares.",
+        "significado_invertido": "Problemas de saúde, estagnação, bloqueios energéticos."},
+    
+    6: {"nome": "As Nuvens", "simbolo": "☁️", "palavras_chave": "Confusão, dúvida, incerteza",
+        "significado_normal": "Período de confusão, falta de clareza. Busque informações antes de decidir.",
+        "significado_invertido": "Esclarecimento, névoa se dissipando. A verdade virá à tona."},
+    
+    7: {"nome": "A Serpente", "simbolo": "🐍", "palavras_chave": "Traição, sabedoria, tentação",
+        "significado_normal": "Cuidado com pessoas falsas. Sabedoria feminina, intuição aguçada.",
+        "significado_invertido": "Perigo afastado, falsidade descoberta. Livramento de uma armadilha."},
+    
+    8: {"nome": "O Caixão", "simbolo": "⚰️", "palavras_chave": "Fim, transformação, renascimento",
+        "significado_normal": "Fim de ciclo, transformação profunda. Necessário deixar algo morrer.",
+        "significado_invertido": "Renascimento, superação. O pior já passou."},
+    
+    9: {"nome": "O Buquê", "simbolo": "💐", "palavras_chave": "Felicidade, convite, beleza",
+        "significado_normal": "Alegria, presentes, convites. Reconhecimento e momentos felizes.",
+        "significado_invertido": "Felicidade adiada, convite recusado. Pequenas decepções."},
+    
+    10: {"nome": "A Foice", "simbolo": "🔪", "palavras_chave": "Corte, decisão, separação",
+        "significado_normal": "Decisões rápidas, cortes necessários. Separação ou mudança brusca.",
+        "significado_invertido": "Decisão adiada, perigo evitado. Acidente quase ocorreu."},
+    
+    11: {"nome": "O Chicote", "simbolo": "🪢", "palavras_chave": "Conflito, discussão, tensão",
+        "significado_normal": "Discussões, conflitos, tensões. Necessidade de diálogo claro.",
+        "significado_invertido": "Trégua, resolução de conflitos. Paz após tempestade."},
+    
+    12: {"nome": "Os Pássaros", "simbolo": "🐦", "palavras_chave": "Conversas, ansiedade, contato",
+        "significado_normal": "Boas conversas, contatos sociais. Notícias através de pessoas.",
+        "significado_invertido": "Fofocas, ansiedade, conversas desagradáveis."},
+    
+    13: {"nome": "A Criança", "simbolo": "👶", "palavras_chave": "Novo começo, inocência, confiança",
+        "significado_normal": "Novos projetos, gravidez, confiança. Começos promissores.",
+        "significado_invertido": "Imaturidade, atraso em projetos. Cuidado com ingenuidade."},
+    
+    14: {"nome": "A Raposa", "simbolo": "🦊", "palavras_chave": "Esperteza, desconfiança, trabalho",
+        "significado_normal": "Pessoa astuta, inteligente. Cuidado com malícia alheia.",
+        "significado_invertido": "Engano descoberto, pessoa confiável. Esperteza usada para o bem."},
+    
+    15: {"nome": "O Urso", "simbolo": "🐻", "palavras_chave": "Força, poder, proteção",
+        "significado_normal": "Autoridade, proteção materna, força interior.",
+        "significado_invertido": "Abuso de poder, ciúmes, pessoa possessiva."},
+    
+    16: {"nome": "As Estrelas", "simbolo": "⭐", "palavras_chave": "Espiritualidade, esperança, destino",
+        "significado_normal": "Boa sorte espiritual, realização de desejos. Proteção divina.",
+        "significado_invertido": "Desesperança, bloqueio espiritual. Momento de fé."},
+    
+    17: {"nome": "A Cegonha", "simbolo": "🕊️", "palavras_chave": "Mudança, parto, evolução",
+        "significado_normal": "Mudança positiva, nascimento, evolução na vida.",
+        "significado_invertido": "Mudança difícil, resistência a transformações."},
+    
+    18: {"nome": "O Cachorro", "simbolo": "🐕", "palavras_chave": "Amizade, lealdade, confiança",
+        "significado_normal": "Amigo verdadeiro, parceria fiel, amor incondicional.",
+        "significado_invertido": "Amizade falsa, deslealdade, confiança quebrada."},
+    
+    19: {"nome": "A Torre", "simbolo": "🏰", "palavras_chave": "Solidão, autoridade, isolamento",
+        "significado_normal": "Instituições, orgulho, posição social. Sabedoria na solidão.",
+        "significado_invertido": "Aprisionamento, arrogância, isolamento forçado."},
+    
+    20: {"nome": "O Jardim", "simbolo": "🌺", "palavras_chave": "Socialização, eventos, admiração",
+        "significado_normal": "Eventos sociais, networking, admiração pública.",
+        "significado_invertido": "Fofocas, eventos cancelados, vida social negativa."},
+    
+    21: {"nome": "A Montanha", "simbolo": "⛰️", "palavras_chave": "Obstáculo, desafio, bloqueio",
+        "significado_normal": "Desafios a superar, obstáculos temporários. Paciência.",
+        "significado_invertido": "Obstáculo superado, caminho livre. Vitória."},
+    
+    22: {"nome": "O Caminho", "simbolo": "🛤️", "palavras_chave": "Escolha, decisão, opções",
+        "significado_normal": "Escolhas a fazer, encruzilhada. Novas direções.",
+        "significado_invertido": "Indecisão, caminho errado. Momento de parar."},
+    
+    23: {"nome": "O Rato", "simbolo": "🐀", "palavras_chave": "Perda, roubo, desgaste",
+        "significado_normal": "Pequenas perdas, desgaste, algo se esvaindo.",
+        "significado_invertido": "Perda recuperada, problema resolvido. Alívio."},
+    
+    24: {"nome": "O Coração", "simbolo": "❤️", "palavras_chave": "Amor, paixão, emoção",
+        "significado_normal": "Amor verdadeiro, romance, felicidade no amor.",
+        "significado_invertido": "Desamor, coração partido, decepção amorosa."},
+    
+    25: {"nome": "A Aliança", "simbolo": "💍", "palavras_chave": "Compromisso, casamento, parceria",
+        "significado_normal": "Casamento, sociedade, contratos. União promissora.",
+        "significado_invertido": "Compromisso quebrado, divórcio, parceria desfeita."},
+    
+    26: {"nome": "O Livro", "simbolo": "📚", "palavras_chave": "Segredo, conhecimento, estudo",
+        "significado_normal": "Aprendizado, segredos revelados. Busca por conhecimento.",
+        "significado_invertido": "Segredo mantido, ignorância. Mistério não resolvido."},
+    
+    27: {"nome": "A Carta", "simbolo": "✉️", "palavras_chave": "Mensagem, comunicação, documento",
+        "significado_normal": "Notícias formais, documentos, comunicação oficial.",
+        "significado_invertido": "Mensagem não entregue, comunicação falha."},
+    
+    28: {"nome": "O Homem", "simbolo": "👨", "palavras_chave": "Masculino, ação, figura paterna",
+        "significado_normal": "Figura masculina, parceiro, ação e iniciativa.",
+        "significado_invertido": "Homem ausente, masculino tóxico, passividade."},
+    
+    29: {"nome": "A Mulher", "simbolo": "👩", "palavras_chave": "Feminino, intuição, figura materna",
+        "significado_normal": "Figura feminina, parceira, intuição e acolhimento.",
+        "significado_invertido": "Mulher ausente, feminino bloqueado. Intuição falha."},
+    
+    30: {"nome": "Os Lírios", "simbolo": "⚜️", "palavras_chave": "Virtude, paz, harmonia",
+        "significado_normal": "Paz interior, harmonia familiar, pureza de intenções.",
+        "significado_invertido": "Conflito familiar, desarmonia, impureza."},
+    
+    31: {"nome": "O Sol", "simbolo": "☀️", "palavras_chave": "Sucesso, energia, felicidade",
+        "significado_normal": "Sucesso garantido, energia vital, felicidade plena.",
+        "significado_invertido": "Sucesso temporário, energia baixa. Otimismo necessário."},
+    
+    32: {"nome": "A Lua", "simbolo": "🌙", "palavras_chave": "Intuição, emoção, ciclo",
+        "significado_normal": "Intuição aguçada, emoções à flor da pele, ciclo feminino.",
+        "significado_invertido": "Confusão emocional, intuição falha. Medos internos."},
+    
+    33: {"nome": "A Chave", "simbolo": "🔑", "palavras_chave": "Solução, destino, abertura",
+        "significado_normal": "Solução encontrada, portas abertas, destino se revelando.",
+        "significado_invertido": "Oportunidade perdida, solução escondida."},
+    
+    34: {"nome": "O Peixe", "simbolo": "🐟", "palavras_chave": "Dinheiro, abundância, prosperidade",
+        "significado_normal": "Ganhos financeiros, prosperidade, negócios lucrativos.",
+        "significado_invertido": "Dificuldade financeira, dinheiro mal investido."},
+    
+    35: {"nome": "A Âncora", "simbolo": "⚓", "palavras_chave": "Estabilidade, segurança, permanência",
+        "significado_normal": "Segurança no trabalho, relacionamento estável. Firmeza.",
+        "significado_invertido": "Instabilidade, insegurança. Necessidade de mudança."},
+    
+    36: {"nome": "A Cruz", "simbolo": "✝️", "palavras_chave": "Fardo, destino, espiritualidade",
+        "significado_normal": "Fardo a carregar, destino, provação espiritual.",
+        "significado_invertido": "Alívio, fardo retirado, superação de provação."}
+}
 
-# --- ENTRADA DE DADOS ---
-pergunta = st.text_area("Descreva seu cenário ou faça sua pergunta estratégica:", placeholder="Ex: Devo avançar com a nova parceria de negócios?")
+# ============================================
+# TIRAGENS PRÉ-DEFINIDAS
+# ============================================
+TIPOS_TIRAGEM = {
+    "3 Cartas (Passado, Presente, Futuro)": {
+        "descricao": "Visão geral da jornada do consulente",
+        "num_cartas": 3,
+        "posicoes": ["Passado", "Presente", "Futuro"]
+    },
+    "5 Cartas (Cruz Cigana)": {
+        "descricao": "Análise completa: situação, obstáculo, conselho, resultado, síntese",
+        "num_cartas": 5,
+        "posicoes": ["Situação Atual", "Obstáculo", "Conselho", "Resultado", "Síntese"]
+    },
+    "7 Cartas (Estrela)": {
+        "descricao": "Tiragem espiritual: corpo, mente, espírito, emoções, trabalho, amor, dinheiro",
+        "num_cartas": 7,
+        "posicoes": ["Corpo/Saúde", "Mente/Emoções", "Espírito", "Amor", "Trabalho", "Dinheiro", "Família"]
+    }
+}
 
-st.subheader("Selecione as Cartas da sua Tiragem")
-col1, col2, col3 = st.columns(3)
+# ============================================
+# FUNÇÕES DE INTERFACE E IMAGENS
+# ============================================
+def carregar_imagem_carta(nome_carta):
+    """
+    Tenta carregar a imagem do arquivo, se não existir usa um placeholder
+    """
+    nome_arquivo = f"cartas/{nome_carta.lower().replace(' ', '_')}.png"
+    nome_arquivo_invertido = f"cartas/{nome_carta.lower().replace(' ', '_')}_invertida.png"
+    
+    try:
+        img_normal = Image.open(nome_arquivo)
+        img_invertida = img_normal.transpose(Image.ROTATE_180)
+        return img_normal, img_invertida
+    except:
+        # Placeholder com texto
+        img = Image.new('RGB', (200, 300), color=(45, 55, 72))
+        return img, img.transpose(Image.ROTATE_180)
 
-# Lista de Arcanos Maiores para o seletor
-cartas = [
-    "O Louco", "O Mago", "A Sacerdotisa", "A Imperatriz", "O Imperador", 
-    "O Hierofante", "Os Enamorados", "O Carro", "A Justiça", "O Eremita", 
-    "Roda da Fortuna", "A Força", "O Pendurado", "A Morte", "A Temperança", 
-    "O Diabo", "A Torre", "A Estrela", "A Lua", "O Sol", "O Julgamento", "O Mundo"
-]
+def sortear_cartas(tipo_tiragem):
+    """
+    Sorteia as cartas de acordo com o tipo de tiragem
+    """
+    config = TIPOS_TIRAGEM[tipo_tiragem]
+    indices_sorteados = random.sample(list(BARALHO_CIGANO.keys()), config["num_cartas"])
+    
+    cartas_selecionadas = []
+    for i, idx in enumerate(indices_sorteados):
+        orientacao = random.choice(["normal", "invertida"])
+        carta = BARALHO_CIGANO[idx].copy()
+        carta["id"] = idx
+        carta["orientacao"] = orientacao
+        carta["posicao"] = config["posicoes"][i]
+        cartas_selecionadas.append(carta)
+    
+    return cartas_selecionadas
 
-with col1:
-    c1 = st.selectbox("Carta 1 (Passado/Base)", cartas)
-with col2:
-    c2 = st.selectbox("Carta 2 (Presente/Ação)", cartas)
-with col3:
-    c3 = st.selectbox("Carta 3 (Futuro/Potencial)", cartas)
+# ============================================
+# FUNÇÃO PRINCIPAL DO GEMINI
+# ============================================
+def interpretar_tiragem(cartas, pergunta_usuario, historico=""):
+    """
+    Envia a tiragem para o Gemini e retorna a interpretação
+    """
+    modelo = genai.GenerativeModel('gemini-1.5-pro-latest')
+    
+    # Construir o prompt detalhado
+    prompt = f"""
+VOCÊ É UMA ESPECIALISTA EM BARALHO CIGANO (LENORMAND) COM MAIS DE 30 ANOS DE EXPERIÊNCIA.
 
-# --- PROCESSAMENTO DA IA ---
-if st.button("Realizar Interpretação"):
-    if pergunta:
-        try:
-            # Busca a API Key de forma segura nos Secrets do Streamlit
-            genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            
-            # Monte o seu prompt aqui - Substitua o texto abaixo pelas suas instruções reais
-            prompt_sistema = f"""
-            Você é o Executivo do Tarô, um consultor que une a sabedoria dos arquétipos com uma visão pragmática e profissional.
-            
-            CONTEXTO DO CLIENTE: {pergunta}
-            TIRAGEM: {c1}, {c2} e {c3}.
-            
-            INSTRUÇÕES: Forneça uma análise precisa, mantendo o tom de coach executivo. 
-            Não use linguagem excessivamente mística; foque em insights acionáveis e clareza mental.
-            """
-            
-            with st.spinner('O Executivo está analisando as cartas...'):
-                response = model.generate_content(prompt_sistema)
-                st.markdown("---")
-                st.markdown("### 📜 Sua Resposta Estratégica")
-                st.write(response.text)
-                
-                # Rodapé opcional para promover seus produtos Amati
-                st.info("💡 Dica: Complemente esta clareza mental com nossos Sais de Banho Terapêuticos.")
+## SOBRE O CONSULENTE:
+Pergunta/Intenção: {pergunta_usuario if pergunta_usuario else "Consulta geral - sem pergunta específica"}
+
+## CARTAS SORTEADAS:
+"""
+    
+    for carta in cartas:
+        significado = carta['significado_invertido'] if carta['orientacao'] == 'invertida' else carta['significado_normal']
+        prompt += f"""
+📍 {carta['posicao']}
+Carta: {carta['nome']} {carta['simbolo']}
+Orientação: {carta['orientacao'].upper()}
+Significado Base: {significado}
+Palavras-chave: {carta['palavras_chave']}
+"""
+
+    prompt += f"""
+## REGRAS DE OURO PARA INTERPRETAÇÃO:
+1️⃣ FALE COM EMPATIA - Use linguagem acolhedora e jamais assuste o consulente
+2️⃣ SEJA ESPECÍFICA - Relacione as cartas entre si, não interprete isoladamente
+3️⃣ SEMPRE FOQUE NO POSITIVO - Mesmo cartas "difíceis" tem lições
+4️⃣ NÃO USE TERMOS TÉCNICOS - Explique como se estivesse sentada à mesa com o consulente
+5️⃣ RESPEITE O BARALHO CIGANO - Use a simbologia tradicional Lenormand, não confunda com Tarot
+
+## INSTRUÇÃO ESPECÍFICA:
+Faça uma leitura FLUIDA e NATURAL. Não liste as cartas uma por uma como se fosse um dicionário. Conte uma história que conecte as posições e os significados.
+
+## HISTÓRICO DA CONVERSA (para manter contexto):
+{historico if historico else "Primeira consulta do cliente."}
+
+## SUA INTERPRETAÇÃO (mínimo 10 linhas):
+"""
+    
+    # Gerar resposta
+    response = modelo.generate_content(prompt)
+    return response.text
+
+# ============================================
+# INTERFACE PRINCIPAL STREAMLIT
+# ============================================
+def main():
+    st.title("🔮 Baralho Cigano Online")
+    st.markdown("---")
+    
+    # Sidebar - Configurações
+    with st.sidebar:
+        st.header("⚙️ Configurações")
         
-        except Exception as e:
-            st.error("Erro técnico: Certifique-se de que a API Key foi configurada nos Secrets do Streamlit.")
-    else:
-        st.warning("Por favor, descreva sua dúvida antes de consultar o oráculo.")
+        # Escolha do tipo de tiragem
+        tipo_tiragem = st.selectbox(
+            "Escolha o tipo de tiragem:",
+            list(TIPOS_TIRAGEM.keys())
+        )
+        
+        st.markdown("---")
+        st.subheader("📊 Sobre as cartas")
+        st.info(f"Total: 36 lâminas do Baralho Cigano tradicional")
+        
+        # Botão de nova consulta
+        if st.button("🔄 Nova Consulta"):
+            st.session_state.cartas_sorteadas = None
+            st.session_state.interpretacao = None
+            st.session_state.historico = []
+            st.rerun()
+    
+    # Área principal
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        pergunta = st.text_area(
+            "💭 Qual sua pergunta ou intenção para esta consulta?",
+            placeholder="Ex: Como está minha vida amorosa? O que vem pela frente no trabalho?",
+            height=100
+        )
+    
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🃏 **TIRAR CARTAS**", use_container_width=True, type="primary"):
+            with st.spinner("Embaralhando e cortando o baralho..."):
+                st.session_state.cartas_sorteadas = sortear_cartas(tipo_tiragem)
+                st.session_state.interpretacao = None
+                st.session_state.pergunta_atual = pergunta
+    
+    # Exibir cartas sorteadas
+    if 'cartas_sorteadas' in st.session_state and st.session_state.cartas_sorteadas:
+        st.markdown("---")
+        st.subheader("🃏 Suas Cartas")
+        
+        # Layout em grid para as cartas
+        cols = st.columns(len(st.session_state.cartas_sorteadas))
+        
+        for idx, (col, carta) in enumerate(zip(cols, st.session_state.cartas_sorteadas)):
+            with col:
+                # Carregar imagem (placeholder ou real)
+                img_normal, img_invertida = carregar_imagem_carta(carta['nome'])
+                
+                if carta['orientacao'] == 'invertida':
+                    st.image(img_invertida, use_container_width=True)
+                    st.markdown(f"**{carta['nome']}** 🔄")
+                else:
+                    st.image(img_normal, use_container_width=True)
+                    st.markdown(f"**{carta['nome']}**")
+                
+                st.caption(f"📍 {carta['posicao']}")
+                st.caption(f"{carta['simbolo']} {carta['palavras_chave']}")
+        
+        # Botão para interpretação
+        st.markdown("---")
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col2:
+            if st.button("🔮 **INTERPRETAR CARTAS**", use_container_width=True):
+                with st.spinner("Consultando os mistérios do Baralho Cigano..."):
+                    # Construir histórico
+                    historico_texto = ""
+                    if 'historico' in st.session_state and st.session_state.historico:
+                        historico_texto = "\n".join(st.session_state.historico[-3:])
+                    
+                    # Interpretar
+                    interpretacao = interpretar_tiragem(
+                        st.session_state.cartas_sorteadas,
+                        st.session_state.get('pergunta_atual', ''),
+                        historico_texto
+                    )
+                    
+                    st.session_state.interpretacao = interpretacao
+                    
+                    # Salvar no histórico
+                    if 'historico' not in st.session_state:
+                        st.session_state.historico = []
+                    
+                    resumo = f"Tiragem {datetime.now().strftime('%d/%m/%y')}: {[c['nome'] for c in st.session_state.cartas_sorteadas]}"
+                    st.session_state.historico.append(resumo)
+    
+    # Exibir interpretação
+    if 'interpretacao' in st.session_state and st.session_state.interpretacao:
+        st.markdown("---")
+        st.subheader("🔮 Mensagem do Baralho Cigano")
+        
+        with st.container():
+            st.markdown("---")
+            st.markdown(st.session_state.interpretacao)
+            st.markdown("---")
+            st.caption("🙏 Lembre-se: As cartas são um guia, não uma verdade absoluta. O livre arbítrio sempre prevalece.")
+        
+        # Feedback
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 Útil"):
+                st.success("Obrigado pelo feedback!")
+        with col2:
+            if st.button("🔄 Nova consulta"):
+                st.session_state.cartas_sorteadas = None
+                st.session_state.interpretacao = None
+                st.rerun()
+    
+    # Rodapé
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style='text-align: center; color: gray;'>
+        <small>Baralho Cigano Tradicional • 36 Lâminas • Interpretação com IA Gemini<br>
+        Desenvolvido com respeito à tradição cigana</small>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+if __name__ == "__main__":
+    main()
