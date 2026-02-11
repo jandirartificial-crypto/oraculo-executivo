@@ -1,18 +1,19 @@
 import streamlit as st
 import google.generativeai as genai
 from datetime import datetime
+import json
 
 # ============================================
-# CONFIGURAÇÃO INICIAL E SEGREDOS
+# CONFIGURAÇÃO INICIAL - DESIGN PREMIUM
 # ============================================
 st.set_page_config(
-    page_title="🔮 Baralho Cigano - Consulta Online",
+    page_title="🔮 Baralho Cigano - Análise Profunda",
     page_icon="🃏",
     layout="centered",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="expanded"
 )
 
-# Configurar API do Gemini (via Streamlit Secrets)
+# Configurar API do Gemini
 try:
     GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=GOOGLE_API_KEY)
@@ -21,329 +22,626 @@ except Exception as e:
     st.stop()
 
 # ============================================
-# CSS PERSONALIZADO
+# CSS DESIGN PREMIUM - BRANCO/PRETO
 # ============================================
 st.markdown("""
     <style>
+        /* MAIN APP - FUNDO BRANCO */
         .stApp {
-            background: linear-gradient(135deg, #1a1e24 0%, #2d3439 100%);
+            background-color: #FFFFFF;
         }
         
+        /* SIDEBAR - FUNDO PRETO */
+        section[data-testid="stSidebar"] {
+            background-color: #000000 !important;
+        }
+        
+        section[data-testid="stSidebar"] * {
+            color: #FFFFFF !important;
+        }
+        
+        section[data-testid="stSidebar"] .stSelectbox label,
+        section[data-testid="stSidebar"] .stSelectbox div,
+        section[data-testid="stSidebar"] h1,
+        section[data-testid="stSidebar"] h2,
+        section[data-testid="stSidebar"] h3,
+        section[data-testid="stSidebar"] h4 {
+            color: #FFFFFF !important;
+        }
+        
+        /* CARDS DAS CARTAS - ELEGANTES */
         .carta-card {
-            background: linear-gradient(145deg, #2c3e50, #1e2a36);
-            border: 2px solid #4a5568;
-            border-radius: 15px;
+            background: linear-gradient(145deg, #F8F9FA, #E9ECEF);
+            border: 1px solid #DEE2E6;
+            border-radius: 12px;
             padding: 20px 10px;
             margin: 10px 0;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.3s;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 250px;
+            min-height: 280px;
         }
         
         .carta-card:hover {
             transform: translateY(-5px);
-            border-color: #9f7aea;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border-color: #495057;
         }
         
         .carta-invertida {
-            background: linear-gradient(145deg, #8b4513, #5d2e1b);
-            border-color: #ff6b6b;
+            background: linear-gradient(145deg, #2B2B2B, #1A1A1A);
+            border-color: #6C757D;
+        }
+        
+        .carta-invertida .carta-nome,
+        .carta-invertida .carta-posicao,
+        .carta-invertida .carta-palavras,
+        .carta-invertida .carta-orientacao,
+        .carta-invertida div {
+            color: #FFFFFF !important;
         }
         
         .carta-simbolo {
             font-size: 64px;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #212529;
+        }
+        
+        .carta-invertida .carta-simbolo {
+            color: #FFD700;
         }
         
         .carta-nome {
             font-size: 20px;
-            font-weight: bold;
-            color: white;
+            font-weight: 700;
+            color: #212529;
             margin-bottom: 5px;
-            text-shadow: 1px 1px 2px black;
         }
         
         .carta-posicao {
             font-size: 14px;
-            color: #e0e0e0;
+            color: #6C757D;
             margin-bottom: 10px;
             font-style: italic;
-            background: rgba(0,0,0,0.2);
-            padding: 4px 8px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-left: auto;
-            margin-right: auto;
+            font-weight: 500;
+        }
+        
+        .carta-palavras {
+            font-size: 12px;
+            color: #495057;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #DEE2E6;
+            font-weight: 500;
         }
         
         .carta-orientacao {
             margin-top: 8px;
             font-size: 11px;
-            color: #90a4ae;
+            color: #6C757D;
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-weight: 600;
         }
         
+        /* BOX DE INTERPRETAÇÃO - PROFISSIONAL */
         .interpretacao-box {
-            background: rgba(0,0,0,0.2);
-            border-left: 5px solid #9f7aea;
-            padding: 20px;
-            border-radius: 10px;
+            background: #F8F9FA;
+            border-left: 8px solid #000000;
+            padding: 30px;
+            border-radius: 0 12px 12px 0;
             margin: 20px 0;
             font-size: 18px;
-            line-height: 1.6;
-            color: #e0e0e0;
+            line-height: 1.8;
+            color: #212529;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         
+        /* INSTRUÇÕES */
+        .instrucoes-box {
+            background: #F8F9FA;
+            border: 1px solid #DEE2E6;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: #212529;
+        }
+        
+        .instrucoes-box h4 {
+            color: #000000;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        /* BOTÕES */
         .stButton button {
-            background: linear-gradient(135deg, #9f7aea, #6b46c1);
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 50px;
-            padding: 10px 25px;
-            transition: all 0.3s;
+            background: #000000 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border: none !important;
+            border-radius: 50px !important;
+            padding: 10px 25px !important;
+            transition: all 0.3s !important;
+            border: 1px solid #000000 !important;
         }
         
         .stButton button:hover {
-            background: linear-gradient(135deg, #b794f4, #805ad5);
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(159, 122, 234, 0.4);
+            background: #FFFFFF !important;
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+            transform: scale(1.02);
         }
         
-        .instrucoes-box {
-            background: rgba(159, 122, 234, 0.1);
-            border: 1px solid #9f7aea;
-            border-radius: 10px;
+        /* INPUTS E SELECTS */
+        .stTextInput input, .stSelectbox div {
+            border-radius: 8px !important;
+            border: 1px solid #DEE2E6 !important;
+        }
+        
+        .stTextInput input:focus {
+            border-color: #000000 !important;
+            box-shadow: 0 0 0 1px #000000 !important;
+        }
+        
+        /* TÍTULOS */
+        h1, h2, h3 {
+            color: #000000 !important;
+            font-weight: 700 !important;
+        }
+        
+        /* RODAPÉ */
+        .rodape {
+            text-align: center;
+            color: #6C757D;
+            padding: 30px 20px;
+            border-top: 1px solid #DEE2E6;
+            margin-top: 40px;
+        }
+        
+        /* PROGRESSO */
+        .progresso-card {
+            background: #F8F9FA;
+            border-radius: 12px;
             padding: 15px;
-            margin-bottom: 20px;
-            color: #e0e0e0;
+            margin: 10px 0;
+            text-align: center;
+            border: 1px solid #DEE2E6;
+        }
+        
+        .progresso-numero {
+            font-size: 36px;
+            font-weight: 800;
+            color: #000000;
         }
     </style>
 """, unsafe_allow_html=True)
 
 # ============================================
-# BASE DE CONHECIMENTO - 36 CARTAS DO BARALHO CIGANO
+# BASE DE CONHECIMENTO - 36 CARTAS + JUNG
 # ============================================
 BARALHO_CIGANO = {
-    1: {"nome": "O Cavaleiro", "simbolo": "♞", "palavras_chave": "Notícias, movimento, chegada",
-        "significado_normal": "Notícias chegando, visitas, movimento rápido. Indica mensagens importantes a caminho.",
-        "significado_invertido": "Atrasos, notícias adiadas, visitas indesejadas ou cancelamento de planos."},
-    
-    2: {"nome": "O Trevo", "simbolo": "🍀", "palavras_chave": "Sorte, esperança, brevidade",
-        "significado_normal": "Pequena sorte, oportunidades passageiras. Momento de esperança e otimismo.",
-        "significado_invertido": "Sorte atrasada, pequenas frustrações. Cuidado com expectativas irreais."},
-    
-    3: {"nome": "O Navio", "simbolo": "⛵", "palavras_chave": "Viagem, comércio, distância",
-        "significado_normal": "Viagens, negócios à distância, mudanças. Expansão de horizontes.",
-        "significado_invertido": "Viagem adiada, problemas no transporte, negócios no exterior com dificuldades."},
-    
-    4: {"nome": "A Casa", "simbolo": "🏠", "palavras_chave": "Lar, família, estabilidade",
-        "significado_normal": "Segurança doméstica, harmonia familiar, questões imobiliárias.",
-        "significado_invertido": "Problemas em casa, desarmonia familiar, necessidade de mudança."},
-    
-    5: {"nome": "A Árvore", "simbolo": "🌳", "palavras_chave": "Saúde, crescimento, ancestralidade",
-        "significado_normal": "Boa saúde, crescimento pessoal, conexão com raízes familiares.",
-        "significado_invertido": "Problemas de saúde, estagnação, bloqueios energéticos."},
-    
-    6: {"nome": "As Nuvens", "simbolo": "☁️", "palavras_chave": "Confusão, dúvida, incerteza",
-        "significado_normal": "Período de confusão, falta de clareza. Busque informações antes de decidir.",
-        "significado_invertido": "Esclarecimento, névoa se dissipando. A verdade virá à tona."},
-    
-    7: {"nome": "A Serpente", "simbolo": "🐍", "palavras_chave": "Traição, sabedoria, tentação",
-        "significado_normal": "Cuidado com pessoas falsas. Sabedoria feminina, intuição aguçada.",
-        "significado_invertido": "Perigo afastado, falsidade descoberta. Livramento de uma armadilha."},
-    
-    8: {"nome": "O Caixão", "simbolo": "⚰️", "palavras_chave": "Fim, transformação, renascimento",
-        "significado_normal": "Fim de ciclo, transformação profunda. Necessário deixar algo morrer.",
-        "significado_invertido": "Renascimento, superação. O pior já passou."},
-    
-    9: {"nome": "O Buquê", "simbolo": "💐", "palavras_chave": "Felicidade, convite, beleza",
-        "significado_normal": "Alegria, presentes, convites. Reconhecimento e momentos felizes.",
-        "significado_invertido": "Felicidade adiada, convite recusado. Pequenas decepções."},
-    
-    10: {"nome": "A Foice", "simbolo": "🔪", "palavras_chave": "Corte, decisão, separação",
+    1: {
+        "nome": "O Cavaleiro", 
+        "simbolo": "♞", 
+        "palavras_chave": "Notícias, movimento, chegada, mensageiro",
+        "arquétipo_jung": "O Mensageiro - Hermes, Mercúrio, transição entre mundos",
+        "sombra": "Pressa, ansiedade, notícias indesejadas",
+        "anima_animus": "Figura masculina dinâmica, parceiro em movimento",
+        "significado_normal": "Notícias chegando, visitas, movimento rápido. Indica mensagens importantes a caminho. Representa o arquétipo do mensageiro que traz transformação.",
+        "significado_invertido": "Atrasos, notícias adiadas, visitas indesejadas. A sombra da pressa - momentos de pausa necessária."
+    },
+    2: {
+        "nome": "O Trevo", 
+        "simbolo": "🍀", 
+        "palavras_chave": "Sorte, esperança, brevidade, sincronicidade",
+        "arquétipo_jung": "Sincronicidade - eventos significativos, acaso com propósito",
+        "sombra": "Sorte atrasada, expectativas irreais",
+        "anima_animus": "Esperança, fé no invisível",
+        "significado_normal": "Pequena sorte, oportunidades passageiras. Momento de esperança e otimismo. Jung via nestes eventos a sincronicidade - conexões significativas além da causalidade.",
+        "significado_invertido": "Sorte atrasada, pequenas frustrações. A sombra da esperança - cuidado com expectativas irreais."
+    },
+    3: {
+        "nome": "O Navio", 
+        "simbolo": "⛵", 
+        "palavras_chave": "Viagem, comércio, distância, jornada",
+        "arquétipo_jung": "A Jornada - processo de individuação, travessia",
+        "sombra": "Jornada interrompida, medo do desconhecido",
+        "anima_animus": "Expansão da consciência, horizontes",
+        "significado_normal": "Viagens, negócios à distância, mudanças. Expansão de horizontes. A jornada do herói em busca de si mesmo.",
+        "significado_invertido": "Viagem adiada, problemas no transporte. Resistência à transformação."
+    },
+    4: {
+        "nome": "A Casa", 
+        "simbolo": "🏠", 
+        "palavras_chave": "Lar, família, estabilidade, self",
+        "arquétipo_jung": "O Self - totalidade, centro da psique",
+        "sombra": "Insegurança doméstica, desarmonia",
+        "anima_animus": "Segurança interior, lar emocional",
+        "significado_normal": "Segurança doméstica, harmonia familiar. Representa o Self - nossa morada interior, centro do ser.",
+        "significado_invertido": "Problemas em casa, desarmonia familiar. A sombra do lar - necessidade de reconstrução."
+    },
+    5: {
+        "nome": "A Árvore", 
+        "simbolo": "🌳", 
+        "palavras_chave": "Saúde, crescimento, ancestralidade",
+        "arquétipo_jung": "A Grande Mãe - nutriz, raízes, ancestralidade",
+        "sombra": "Estagnação, bloqueio energético",
+        "anima_animus": "Conexão com raízes, crescimento interior",
+        "significado_normal": "Boa saúde, crescimento pessoal. A Árvore da Vida - conexão com ancestrais e o inconsciente coletivo.",
+        "significado_invertido": "Problemas de saúde, estagnação. Bloqueios no fluxo vital."
+    },
+    6: {
+        "nome": "As Nuvens", 
+        "simbolo": "☁️", 
+        "palavras_chave": "Confusão, dúvida, incerteza",
+        "arquétipo_jung": "A Névoa - inconsciente, mistério, transição",
+        "sombra": "Confusão mental, ilusão",
+        "anima_animus": "Intuição enevoada, busca por clareza",
+        "significado_normal": "Período de confusão, falta de clareza. A névoa do inconsciente que antecede a iluminação.",
+        "significado_invertido": "Esclarecimento, névoa se dissipando. A verdade emergindo das sombras."
+    },
+    7: {
+        "nome": "A Serpente", 
+        "simbolo": "🐍", 
+        "palavras_chave": "Traição, sabedoria, tentação",
+        "arquétipo_jung": "A Sombra - aspectos reprimidos, sabedoria instintiva",
+        "sombra": "Falsidade, manipulação",
+        "anima_animus": "Sabedoria feminina, intuição",
+        "significado_normal": "Cuidado com pessoas falsas. Sabedoria feminina, intuição aguçada. A serpente como símbolo de transformação e cura.",
+        "significado_invertido": "Perigo afastado, falsidade descoberta. Integração da sombra."
+    },
+    8: {
+        "nome": "O Caixão", 
+        "simbolo": "⚰️", 
+        "palavras_chave": "Fim, transformação, renascimento",
+        "arquétipo_jung": "Morte/Renascimento - transformação, individuação",
+        "sombra": "Medo da morte, apego ao velho",
+        "anima_animus": "Libertação, transcendência",
+        "significado_normal": "Fim de ciclo, transformação profunda. A morte simbólica necessária para o renascimento.",
+        "significado_invertido": "Renascimento, superação. O pior já passou."
+    },
+    9: {
+        "nome": "O Buquê", 
+        "simbolo": "💐", 
+        "palavras_chave": "Felicidade, convite, beleza",
+        "arquétipo_jung": "A Flor - self realizado, beleza interior",
+        "sombra": "Felicidade superficial",
+        "anima_animus": "Reconhecimento, afeto",
+        "significado_normal": "Alegria, presentes, convites. Reconhecimento e momentos felizes. A flor da individuação.",
+        "significado_invertido": "Felicidade adiada. Pequenas decepções."
+    },
+    10: {
+        "nome": "A Foice", 
+        "simbolo": "🔪", 
+        "palavras_chave": "Corte, decisão, separação",
+        "arquétipo_jung": "O Ceifador - discernimento, cortes necessários",
+        "sombra": "Separação dolorosa, violência",
+        "anima_animus": "Decisão, clareza",
         "significado_normal": "Decisões rápidas, cortes necessários. Separação ou mudança brusca.",
-        "significado_invertido": "Decisão adiada, perigo evitado. Acidente quase ocorreu."},
-    
-    11: {"nome": "O Chicote", "simbolo": "🪢", "palavras_chave": "Conflito, discussão, tensão",
+        "significado_invertido": "Decisão adiada, perigo evitado."
+    },
+    11: {
+        "nome": "O Chicote", 
+        "simbolo": "🪢", 
+        "palavras_chave": "Conflito, discussão, tensão",
+        "arquétipo_jung": "Confronto - integração da sombra projetada",
+        "sombra": "Violência, agressividade",
+        "anima_animus": "Diálogo necessário",
         "significado_normal": "Discussões, conflitos, tensões. Necessidade de diálogo claro.",
-        "significado_invertido": "Trégua, resolução de conflitos. Paz após tempestade."},
-    
-    12: {"nome": "Os Pássaros", "simbolo": "🐦", "palavras_chave": "Conversas, ansiedade, contato",
+        "significado_invertido": "Trégua, resolução de conflitos."
+    },
+    12: {
+        "nome": "Os Pássaros", 
+        "simbolo": "🐦", 
+        "palavras_chave": "Conversas, ansiedade, contato",
+        "arquétipo_jung": "Mensageiros - comunicação entre consciente/inconsciente",
+        "sombra": "Fofocas, ansiedade social",
+        "anima_animus": "Conexão, diálogo",
         "significado_normal": "Boas conversas, contatos sociais. Notícias através de pessoas.",
-        "significado_invertido": "Fofocas, ansiedade, conversas desagradáveis."},
-    
-    13: {"nome": "A Criança", "simbolo": "👶", "palavras_chave": "Novo começo, inocência, confiança",
-        "significado_normal": "Novos projetos, gravidez, confiança. Começos promissores.",
-        "significado_invertido": "Imaturidade, atraso em projetos. Cuidado com ingenuidade."},
-    
-    14: {"nome": "A Raposa", "simbolo": "🦊", "palavras_chave": "Esperteza, desconfiança, trabalho",
-        "significado_normal": "Pessoa astuta, inteligente. Cuidado com malícia alheia.",
-        "significado_invertido": "Engano descoberto, pessoa confiável. Esperteza usada para o bem."},
-    
-    15: {"nome": "O Urso", "simbolo": "🐻", "palavras_chave": "Força, poder, proteção",
-        "significado_normal": "Autoridade, proteção materna, força interior.",
-        "significado_invertido": "Abuso de poder, ciúmes, pessoa possessiva."},
-    
-    16: {"nome": "As Estrelas", "simbolo": "⭐", "palavras_chave": "Espiritualidade, esperança, destino",
-        "significado_normal": "Boa sorte espiritual, realização de desejos. Proteção divina.",
-        "significado_invertido": "Desesperança, bloqueio espiritual. Momento de fé."},
-    
-    17: {"nome": "A Cegonha", "simbolo": "🕊️", "palavras_chave": "Mudança, parto, evolução",
-        "significado_normal": "Mudança positiva, nascimento, evolução na vida.",
-        "significado_invertido": "Mudança difícil, resistência a transformações."},
-    
-    18: {"nome": "O Cachorro", "simbolo": "🐕", "palavras_chave": "Amizade, lealdade, confiança",
+        "significado_invertido": "Fofocas, ansiedade, conversas desagradáveis."
+    },
+    13: {
+        "nome": "A Criança", 
+        "simbolo": "👶", 
+        "palavras_chave": "Novo começo, inocência, confiança",
+        "arquétipo_jung": "A Criança Divina - potencial, futuro, renascimento",
+        "sombra": "Imaturidade, infantilidade",
+        "anima_animus": "Inocência, confiança",
+        "significado_normal": "Novos projetos, gravidez, confiança. A criança interior que precisa ser nutrida.",
+        "significado_invertido": "Imaturidade, atraso em projetos. Cuidado com ingenuidade."
+    },
+    14: {
+        "nome": "A Raposa", 
+        "simbolo": "🦊", 
+        "palavras_chave": "Esperteza, desconfiança, trabalho",
+        "arquétipo_jung": "O Trickster - astúcia, travessura, adaptação",
+        "sombra": "Manipulação, engano",
+        "anima_animus": "Inteligência prática",
+        "significado_normal": "Pessoa astuta, inteligente. O Trickster que traz ensinamentos através da esperteza.",
+        "significado_invertido": "Engano descoberto, pessoa confiável. Integração do Trickster."
+    },
+    15: {
+        "nome": "O Urso", 
+        "simbolo": "🐻", 
+        "palavras_chave": "Força, poder, proteção",
+        "arquétipo_jung": "O Guardião - força bruta, poder ancestral",
+        "sombra": "Abuso de poder, possessividade",
+        "anima_animus": "Proteção materna/paterna",
+        "significado_normal": "Autoridade, proteção materna, força interior. O poder que protege.",
+        "significado_invertido": "Abuso de poder, ciúmes, pessoa possessiva. A sombra da autoridade."
+    },
+    16: {
+        "nome": "As Estrelas", 
+        "simbolo": "⭐", 
+        "palavras_chave": "Espiritualidade, esperança, destino",
+        "arquétipo_jung": "O Self - totalidade, guia interior",
+        "sombra": "Desesperança, bloqueio espiritual",
+        "anima_animus": "Conexão divina",
+        "significado_normal": "Boa sorte espiritual, realização de desejos. As estrelas como mapa da alma.",
+        "significado_invertido": "Desesperança, bloqueio espiritual. Momento de fé."
+    },
+    17: {
+        "nome": "A Cegonha", 
+        "simbolo": "🕊️", 
+        "palavras_chave": "Mudança, parto, evolução",
+        "arquétipo_jung": "Transformação - novos começos, fertilidade",
+        "sombra": "Mudança indesejada",
+        "anima_animus": "Criatividade, nascimento",
+        "significado_normal": "Mudança positiva, nascimento, evolução na vida. O novo que chega.",
+        "significado_invertido": "Mudança difícil, resistência a transformações."
+    },
+    18: {
+        "nome": "O Cachorro", 
+        "simbolo": "🐕", 
+        "palavras_chave": "Amizade, lealdade, confiança",
+        "arquétipo_jung": "O Amigo Fiel - lealdade, instinto domesticado",
+        "sombra": "Lealdade cega, dependência",
+        "anima_animus": "Confiança, parceria",
         "significado_normal": "Amigo verdadeiro, parceria fiel, amor incondicional.",
-        "significado_invertido": "Amizade falsa, deslealdade, confiança quebrada."},
-    
-    19: {"nome": "A Torre", "simbolo": "🏰", "palavras_chave": "Solidão, autoridade, isolamento",
-        "significado_normal": "Instituições, orgulho, posição social. Sabedoria na solidão.",
-        "significado_invertido": "Aprisionamento, arrogância, isolamento forçado."},
-    
-    20: {"nome": "O Jardim", "simbolo": "🌺", "palavras_chave": "Socialização, eventos, admiração",
-        "significado_normal": "Eventos sociais, networking, admiração pública.",
-        "significado_invertido": "Fofocas, eventos cancelados, vida social negativa."},
-    
-    21: {"nome": "A Montanha", "simbolo": "⛰️", "palavras_chave": "Obstáculo, desafio, bloqueio",
-        "significado_normal": "Desafios a superar, obstáculos temporários. Paciência.",
-        "significado_invertido": "Obstáculo superado, caminho livre. Vitória."},
-    
-    22: {"nome": "O Caminho", "simbolo": "🛤️", "palavras_chave": "Escolha, decisão, opções",
-        "significado_normal": "Escolhas a fazer, encruzilhada. Novas direções.",
-        "significado_invertido": "Indecisão, caminho errado. Momento de parar."},
-    
-    23: {"nome": "O Rato", "simbolo": "🐀", "palavras_chave": "Perda, roubo, desgaste",
-        "significado_normal": "Pequenas perdas, desgaste, algo se esvaindo.",
-        "significado_invertido": "Perda recuperada, problema resolvido. Alívio."},
-    
-    24: {"nome": "O Coração", "simbolo": "❤️", "palavras_chave": "Amor, paixão, emoção",
-        "significado_normal": "Amor verdadeiro, romance, felicidade no amor.",
-        "significado_invertido": "Desamor, coração partido, decepção amorosa."},
-    
-    25: {"nome": "A Aliança", "simbolo": "💍", "palavras_chave": "Compromisso, casamento, parceria",
-        "significado_normal": "Casamento, sociedade, contratos. União promissora.",
-        "significado_invertido": "Compromisso quebrado, divórcio, parceria desfeita."},
-    
-    26: {"nome": "O Livro", "simbolo": "📚", "palavras_chave": "Segredo, conhecimento, estudo",
-        "significado_normal": "Aprendizado, segredos revelados. Busca por conhecimento.",
-        "significado_invertido": "Segredo mantido, ignorância. Mistério não resolvido."},
-    
-    27: {"nome": "A Carta", "simbolo": "✉️", "palavras_chave": "Mensagem, comunicação, documento",
-        "significado_normal": "Notícias formais, documentos, comunicação oficial.",
-        "significado_invertido": "Mensagem não entregue, comunicação falha."},
-    
-    28: {"nome": "O Homem", "simbolo": "👨", "palavras_chave": "Masculino, ação, figura paterna",
-        "significado_normal": "Figura masculina, parceiro, ação e iniciativa.",
-        "significado_invertido": "Homem ausente, masculino tóxico, passividade."},
-    
-    29: {"nome": "A Mulher", "simbolo": "👩", "palavras_chave": "Feminino, intuição, figura materna",
-        "significado_normal": "Figura feminina, parceira, intuição e acolhimento.",
-        "significado_invertido": "Mulher ausente, feminino bloqueado. Intuição falha."},
-    
-    30: {"nome": "Os Lírios", "simbolo": "⚜️", "palavras_chave": "Virtude, paz, harmonia",
-        "significado_normal": "Paz interior, harmonia familiar, pureza de intenções.",
-        "significado_invertido": "Conflito familiar, desarmonia, impureza."},
-    
-    31: {"nome": "O Sol", "simbolo": "☀️", "palavras_chave": "Sucesso, energia, felicidade",
-        "significado_normal": "Sucesso garantido, energia vital, felicidade plena.",
-        "significado_invertido": "Sucesso temporário, energia baixa. Otimismo necessário."},
-    
-    32: {"nome": "A Lua", "simbolo": "🌙", "palavras_chave": "Intuição, emoção, ciclo",
-        "significado_normal": "Intuição aguçada, emoções à flor da pele, ciclo feminino.",
-        "significado_invertido": "Confusão emocional, intuição falha. Medos internos."},
-    
-    33: {"nome": "A Chave", "simbolo": "🔑", "palavras_chave": "Solução, destino, abertura",
-        "significado_normal": "Solução encontrada, portas abertas, destino se revelando.",
-        "significado_invertido": "Oportunidade perdida, solução escondida."},
-    
-    34: {"nome": "O Peixe", "simbolo": "🐟", "palavras_chave": "Dinheiro, abundância, prosperidade",
-        "significado_normal": "Ganhos financeiros, prosperidade, negócios lucrativos.",
-        "significado_invertido": "Dificuldade financeira, dinheiro mal investido."},
-    
-    35: {"nome": "A Âncora", "simbolo": "⚓", "palavras_chave": "Estabilidade, segurança, permanência",
-        "significado_normal": "Segurança no trabalho, relacionamento estável. Firmeza.",
-        "significado_invertido": "Instabilidade, insegurança. Necessidade de mudança."},
-    
-    36: {"nome": "A Cruz", "simbolo": "✝️", "palavras_chave": "Fardo, destino, espiritualidade",
-        "significado_normal": "Fardo a carregar, destino, provação espiritual.",
-        "significado_invertido": "Alívio, fardo retirado, superação de provação."}
+        "significado_invertido": "Amizade falsa, deslealdade, confiança quebrada."
+    },
+    19: {
+        "nome": "A Torre", 
+        "simbolo": "🏰", 
+        "palavras_chave": "Solidão, autoridade, isolamento",
+        "arquétipo_jung": "O Eremita - introspecção, sabedoria interior",
+        "sombra": "Aprisionamento, arrogância",
+        "anima_animus": "Autoconhecimento",
+        "significado_normal": "Instituições, orgulho, posição social. A torre como espaço de sabedoria na solidão.",
+        "significado_invertido": "Aprisionamento, arrogância, isolamento forçado."
+    },
+    20: {
+        "nome": "O Jardim", 
+        "simbolo": "🌺", 
+        "palavras_chave": "Socialização, eventos, admiração",
+        "arquétipo_jung": "O Paraíso - coletividade, pertencimento",
+        "sombra": "Futilidade social",
+        "anima_animus": "Conexão comunitária",
+        "significado_normal": "Eventos sociais, networking, admiração pública. O self em relação.",
+        "significado_invertido": "Fofocas, eventos cancelados, vida social negativa."
+    },
+    21: {
+        "nome": "A Montanha", 
+        "simbolo": "⛰️", 
+        "palavras_chave": "Obstáculo, desafio, bloqueio",
+        "arquétipo_jung": "A Montanha - desafio, transcendência",
+        "sombra": "Impedimento, frustração",
+        "anima_animus": "Superação, força",
+        "significado_normal": "Desafios a superar, obstáculos temporários. A montanha como jornada de individuação.",
+        "significado_invertido": "Obstáculo superado, caminho livre. Vitória."
+    },
+    22: {
+        "nome": "O Caminho", 
+        "simbolo": "🛤️", 
+        "palavras_chave": "Escolha, decisão, opções",
+        "arquétipo_jung": "A Encruzilhada - escolhas, livre arbítrio",
+        "sombra": "Indecisão, caminho errado",
+        "anima_animus": "Direção, propósito",
+        "significado_normal": "Escolhas a fazer, encruzilhada. O livre arbítrio e a responsabilidade das escolhas.",
+        "significado_invertido": "Indecisão, caminho errado. Momento de parar."
+    },
+    23: {
+        "nome": "O Rato", 
+        "simbolo": "🐀", 
+        "palavras_chave": "Perda, roubo, desgaste",
+        "arquétipo_jung": "A Sombra - aspectos que nos corroem",
+        "sombra": "Autossabotagem, perda",
+        "anima_animus": "Desapego, renovação",
+        "significado_normal": "Pequenas perdas, desgaste, algo se esvaindo. A sombra que consome energia.",
+        "significado_invertido": "Perda recuperada, problema resolvido. Alívio."
+    },
+    24: {
+        "nome": "O Coração", 
+        "simbolo": "❤️", 
+        "palavras_chave": "Amor, paixão, emoção",
+        "arquétipo_jung": "Eros - amor, conexão, anima/animus",
+        "sombra": "Dependência emocional, ciúmes",
+        "anima_animus": "Amor verdadeiro, união",
+        "significado_normal": "Amor verdadeiro, romance, felicidade no amor. A integração da anima/animus.",
+        "significado_invertido": "Desamor, coração partido. Feridas do arquétipo do amor."
+    },
+    25: {
+        "nome": "A Aliança", 
+        "simbolo": "💍", 
+        "palavras_chave": "Compromisso, casamento, parceria",
+        "arquétipo_jung": "A Conjunção - união dos opostos, totalidade",
+        "sombra": "Compromisso vazio",
+        "anima_animus": "União sagrada",
+        "significado_normal": "Casamento, sociedade, contratos. A conjunção alquímica dos opostos.",
+        "significado_invertido": "Compromisso quebrado, divórcio. Sombra da união."
+    },
+    26: {
+        "nome": "O Livro", 
+        "simbolo": "📚", 
+        "palavras_chave": "Segredo, conhecimento, estudo",
+        "arquétipo_jung": "O Sábio - conhecimento, sabedoria interior",
+        "sombra": "Saber superficial, dogmatismo",
+        "anima_animus": "Busca pela verdade",
+        "significado_normal": "Aprendizado, segredos revelados. O livro da vida, conhecimento interior.",
+        "significado_invertido": "Segredo mantido, ignorância. Mistério não resolvido."
+    },
+    27: {
+        "nome": "A Carta", 
+        "simbolo": "✉️", 
+        "palavras_chave": "Mensagem, comunicação, documento",
+        "arquétipo_jung": "O Mensageiro - comunicação do inconsciente",
+        "sombra": "Má comunicação",
+        "anima_animus": "Diálogo, expressão",
+        "significado_normal": "Notícias formais, documentos. Mensagens do inconsciente.",
+        "significado_invertido": "Mensagem não entregue. Comunicação falha."
+    },
+    28: {
+        "nome": "O Homem", 
+        "simbolo": "👨", 
+        "palavras_chave": "Masculino, ação, figura paterna",
+        "arquétipo_jung": "Animus - princípio masculino interior",
+        "sombra": "Masculino tóxico, passividade",
+        "anima_animus": "Ação, iniciativa",
+        "significado_normal": "Figura masculina, parceiro. O animus integrado na psique feminina.",
+        "significado_invertido": "Homem ausente, masculino tóxico. Sombra do animus."
+    },
+    29: {
+        "nome": "A Mulher", 
+        "simbolo": "👩", 
+        "palavras_chave": "Feminino, intuição, figura materna",
+        "arquétipo_jung": "Anima - princípio feminino interior",
+        "sombra": "Feminino reprimido, possessividade",
+        "anima_animus": "Intuição, acolhimento",
+        "significado_normal": "Figura feminina, parceira. A anima integrada na psique masculina.",
+        "significado_invertido": "Mulher ausente, feminino bloqueado. Sombra da anima."
+    },
+    30: {
+        "nome": "Os Lírios", 
+        "simbolo": "⚜️", 
+        "palavras_chave": "Virtude, paz, harmonia",
+        "arquétipo_jung": "A Pureza - self realizado, transcendência",
+        "sombra": "Falsa pureza, hipocrisia",
+        "anima_animus": "Harmonia interior",
+        "significado_normal": "Paz interior, harmonia familiar. A pureza do self realizado.",
+        "significado_invertido": "Conflito familiar, desarmonia. Sombra da virtude."
+    },
+    31: {
+        "nome": "O Sol", 
+        "simbolo": "☀️", 
+        "palavras_chave": "Sucesso, energia, felicidade",
+        "arquétipo_jung": "O Self Iluminado - consciência, totalidade",
+        "sombra": "Ego inflado, arrogância",
+        "anima_animus": "Realização, alegria",
+        "significado_normal": "Sucesso garantido, felicidade plena. O self iluminado pela consciência.",
+        "significado_invertido": "Sucesso temporário, energia baixa. Eclipse do self."
+    },
+    32: {
+        "nome": "A Lua", 
+        "simbolo": "🌙", 
+        "palavras_chave": "Intuição, emoção, ciclo",
+        "arquétipo_jung": "A Grande Mãe - inconsciente, mistério",
+        "sombra": "Confusão emocional, medos",
+        "anima_animus": "Intuição, receptividade",
+        "significado_normal": "Intuição aguçada, emoções. A luz do inconsciente.",
+        "significado_invertido": "Confusão emocional, intuição falha. A sombra da lua."
+    },
+    33: {
+        "nome": "A Chave", 
+        "simbolo": "🔑", 
+        "palavras_chave": "Solução, destino, abertura",
+        "arquétipo_jung": "A Solução - chave para o inconsciente",
+        "sombra": "Oportunidade perdida",
+        "anima_animus": "Resolução, acesso",
+        "significado_normal": "Solução encontrada, portas abertas. A chave para o self.",
+        "significado_invertido": "Oportunidade perdida. Solução escondida."
+    },
+    34: {
+        "nome": "O Peixe", 
+        "simbolo": "🐟", 
+        "palavras_chave": "Dinheiro, abundância, prosperidade",
+        "arquétipo_jung": "Abundância - nutrição, prosperidade",
+        "sombra": "Avareza, escassez",
+        "anima_animus": "Fartura, provisão",
+        "significado_normal": "Ganhos financeiros, prosperidade. O peixe como símbolo de abundância.",
+        "significado_invertido": "Dificuldade financeira. Bloqueio da prosperidade."
+    },
+    35: {
+        "nome": "A Âncora", 
+        "simbolo": "⚓", 
+        "palavras_chave": "Estabilidade, segurança, permanência",
+        "arquétipo_jung": "O Centro - segurança, grounding",
+        "sombra": "Estagnação, imobilidade",
+        "anima_animus": "Firmeza, estabilidade",
+        "significado_normal": "Segurança no trabalho, relacionamento estável. A âncora do self.",
+        "significado_invertido": "Instabilidade, insegurança. Necessidade de mudança."
+    },
+    36: {
+        "nome": "A Cruz", 
+        "simbolo": "✝️", 
+        "palavras_chave": "Fardo, destino, espiritualidade",
+        "arquétipo_jung": "Sacrifício - transcendência, individuação",
+        "sombra": "Vitimização, martírio",
+        "anima_animus": "Fé, propósito",
+        "significado_normal": "Fardo a carregar, destino. A cruz como caminho de individuação.",
+        "significado_invertido": "Alívio, fardo retirado. Superação da provação."
+    }
 }
 
 # ============================================
-# FUNÇÕES PARA VALIDAÇÃO E BUSCA DE CARTAS
+# FUNÇÕES DE BUSCA E VALIDAÇÃO
 # ============================================
 def buscar_carta_por_nome(nome_busca):
-    """Busca uma carta pelo nome (case insensitive)"""
+    """Busca inteligente de cartas"""
     nome_busca = nome_busca.strip().lower()
     
-    # Mapeamento de variações comuns
     variacoes = {
-        "cavaleiro": "O Cavaleiro",
-        "cavalo": "O Cavaleiro",
+        "cavaleiro": "O Cavaleiro", "cavalo": "O Cavaleiro",
         "trevo": "O Trevo",
-        "navio": "O Navio",
-        "barco": "O Navio",
+        "navio": "O Navio", "barco": "O Navio",
         "casa": "A Casa",
-        "arvore": "A Árvore",
-        "nuvens": "As Nuvens",
-        "nuvem": "As Nuvens",
-        "serpente": "A Serpente",
-        "cobra": "A Serpente",
-        "caixao": "O Caixão",
-        "buque": "O Buquê",
-        "flores": "O Buquê",
+        "arvore": "A Árvore", "árvore": "A Árvore",
+        "nuvens": "As Nuvens", "nuvem": "As Nuvens",
+        "serpente": "A Serpente", "cobra": "A Serpente",
+        "caixao": "O Caixão", "caixão": "O Caixão",
+        "buque": "O Buquê", "buquê": "O Buquê", "flores": "O Buquê",
         "foice": "A Foice",
         "chicote": "O Chicote",
-        "passaros": "Os Pássaros",
-        "passaro": "Os Pássaros",
-        "crianca": "A Criança",
+        "passaros": "Os Pássaros", "pássaros": "Os Pássaros", "passaro": "Os Pássaros",
+        "crianca": "A Criança", "criança": "A Criança",
         "raposa": "A Raposa",
         "urso": "O Urso",
         "estrelas": "As Estrelas",
         "cegonha": "A Cegonha",
-        "cachorro": "O Cachorro",
-        "cao": "O Cachorro",
+        "cachorro": "O Cachorro", "cao": "O Cachorro", "cão": "O Cachorro",
         "torre": "A Torre",
         "jardim": "O Jardim",
         "montanha": "A Montanha",
         "caminho": "O Caminho",
         "rato": "O Rato",
-        "coracao": "O Coração",
-        "alianca": "A Aliança",
+        "coracao": "O Coração", "coração": "O Coração",
+        "alianca": "A Aliança", "aliança": "A Aliança",
         "livro": "O Livro",
         "carta": "A Carta",
         "homem": "O Homem",
         "mulher": "A Mulher",
-        "lirios": "Os Lírios",
+        "lirios": "Os Lírios", "lírios": "Os Lírios",
         "sol": "O Sol",
         "lua": "A Lua",
         "chave": "A Chave",
         "peixe": "O Peixe",
-        "ancora": "A Âncora",
+        "ancora": "A Âncora", "âncora": "A Âncora",
         "cruz": "A Cruz"
     }
     
-    # Verificar se é uma variação
     if nome_busca in variacoes:
         nome_correto = variacoes[nome_busca]
         for id, carta in BARALHO_CIGANO.items():
             if carta["nome"].lower() == nome_correto.lower():
                 return id, carta
     
-    # Busca exata
     for id, carta in BARALHO_CIGANO.items():
         if carta["nome"].lower() == nome_busca:
             return id, carta
     
-    # Busca parcial
     for id, carta in BARALHO_CIGANO.items():
         if nome_busca in carta["nome"].lower():
             return id, carta
@@ -351,35 +649,24 @@ def buscar_carta_por_nome(nome_busca):
     return None, None
 
 def validar_carta(nome_carta):
-    """Valida se a carta existe e retorna os dados"""
     id, carta = buscar_carta_por_nome(nome_carta)
     if carta:
         return True, id, carta
     return False, None, None
 
-# ============================================
-# FUNÇÃO PARA EXIBIR CARTAS
-# ============================================
 def criar_card_carta(carta, posicao, orientacao):
-    """Cria um card HTML para exibir a carta"""
-    
+    """Card elegante para as cartas"""
     classe_carta = "carta-card"
     if orientacao == 'invertida':
         classe_carta += " carta-invertida"
     
     simbolo_orientacao = " 🔄" if orientacao == 'invertida' else ""
     
-    significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
-    significado_resumo = significado[:80] + "..." if len(significado) > 80 else significado
-    
     html_card = f"""
     <div class="{classe_carta}">
         <div class="carta-simbolo">{carta['simbolo']}</div>
         <div class="carta-nome">{carta['nome']}{simbolo_orientacao}</div>
         <div class="carta-posicao">📍 {posicao}</div>
-        <div style="font-size: 13px; color: #d0d0d0; padding: 0 10px;">
-            {significado_resumo}
-        </div>
         <div class="carta-palavras">{carta['palavras_chave']}</div>
         <div class="carta-orientacao">{orientacao.upper()}</div>
     </div>
@@ -387,40 +674,91 @@ def criar_card_carta(carta, posicao, orientacao):
     return html_card
 
 # ============================================
-# FUNÇÃO PRINCIPAL DO GEMINI
+# FUNÇÃO DE INTERPRETAÇÃO PROFUNDA COM GEMINI + JUNG
 # ============================================
 def interpretar_tiragem(cartas, pergunta_usuario):
-    """Envia a tiragem para o Gemini e retorna a interpretação"""
+    """Interpretação profunda com contexto da pergunta, pesquisa Google e análise Junguiana"""
     try:
-        modelo = genai.GenerativeModel('gemini-pro')
+        modelo = genai.GenerativeModel('gemini-1.5-pro-latest')
         
-        # Construir descrição das cartas
-        cartas_descricao = []
+        # Preparar dados das cartas com análise junguiana
+        cartas_jung = []
         for carta_info in cartas:
             carta = carta_info['carta']
-            cartas_descricao.append(
-                f"{carta_info['posicao']}: {carta['nome']} ({carta_info['orientacao']}) - {carta['palavras_chave']}"
-            )
+            orientacao = carta_info['orientacao']
+            
+            cartas_jung.append({
+                'posicao': carta_info['posicao'],
+                'nome': carta['nome'],
+                'simbolo': carta['simbolo'],
+                'orientacao': orientacao,
+                'significado': carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal'],
+                'arquetipo_jung': carta['arquetipo_jung'],
+                'sombra': carta['sombra'],
+                'anima_animus': carta['anima_animus'],
+                'palavras_chave': carta['palavras_chave']
+            })
         
-        prompt = f"""Você é uma cartomante especialista em Baralho Cigano (Lenormand).
+        # PROMPT PROFISSIONAL COM PESQUISA GOOGLE + ANÁLISE JUNGUIANA
+        prompt = f"""VOCÊ É UM MESTRE EM BARALHO CIGANO (LENORMAND), PSICÓLOGO ANALÍTICO JUNGUIANO E PESQUISADOR.
 
-O consulente fez uma tiragem física de 3 cartas com seu próprio baralho.
+## CONTEXTO DA CONSULTA:
+{pergunta_usuario if pergunta_usuario else "Consulta geral de autoconhecimento"}
 
-PERGUNTA DO CONSULENTE: {pergunta_usuario if pergunta_usuario else "Consulta geral"}
+## CARTAS TIRADAS FISICAMENTE PELO CONSULENTE:
+"""
+        for carta in cartas_jung:
+            prompt += f"""
+📍 {carta['posicao']}: {carta['nome']} ({carta['orientacao'].upper()})
+• Simbologia: {carta['simbolo']} - {carta['palavras_chave']}
+• Significado Tradicional: {carta['significado']}
+• Arquétipo de Jung: {carta['arquetipo_jung']}
+• Aspectos da Sombra: {carta['sombra']}
+• Integração Anima/Animus: {carta['anima_animus']}
+"""
 
-CARTAS TIRADAS (na ordem: Passado, Presente, Futuro):
-{chr(10).join(cartas_descricao)}
+        prompt += f"""
+## INSTRUÇÕES ESPECÍFICAS:
 
-Faça uma leitura empática, positiva e detalhada destas cartas. 
-Conecte os significados entre si, mostrando a evolução do Passado para o Presente e para o Futuro.
-Use linguagem acolhedora e pessoal.
-MÍNIMO DE 10 LINHAS DE INTERPRETAÇÃO."""
+1️⃣ **PESQUISA GOOGLE ATIVA**
+- Busque ativamente conhecimento sobre: {pergunta_usuario if pergunta_usuario else "autoconhecimento e desenvolvimento pessoal"}
+- Pesquise sobre os arquétipos junguianos relacionados às cartas
+- Traga referências de especialistas em Baralho Cigano
+- Contextualize com sabedoria ancestral cigana
+
+2️⃣ **ANÁLISE JUNGUIANA PROFUNDA**
+- Identifique como os arquétipos se manifestam na vida do consulente
+- Analise o processo de individuação revelado pelas cartas
+- Traga a sombra que precisa ser integrada
+- Mostre como a anima/animus está se expressando
+- Relacione com sincronicidade e inconsciente coletivo
+
+3️⃣ **CONEXÃO COM A PERGUNTA**
+- Responda DIRETAMENTE à pergunta do consulente
+- Use a pergunta como fio condutor de toda a interpretação
+- Cada carta deve ser interpretada à luz da questão trazida
+- Se não houver pergunta, foque em autoconhecimento
+
+4️⃣ **LEITURA INTEGRADA DAS CARTAS**
+- NÃO interprete as cartas isoladamente
+- Conte uma história que conecte Passado → Presente → Futuro
+- Mostre a EVOLUÇÃO da situação
+- Crie uma narrativa coesa e transformadora
+
+5️⃣ **LINGUAGEM E ESTRUTURA**
+- Use linguagem acolhedora, sábia e acessível
+- Estruture em parágrafos fluidos (não use bullet points)
+- Mínimo de 20 linhas de interpretação profunda
+- Termine com uma mensagem de empoderamento
+
+## SUA INTERPRETAÇÃO PROFISSIONAL:
+"""
         
         generation_config = {
-            "temperature": 0.8,
+            "temperature": 0.9,
             "top_p": 0.95,
             "top_k": 40,
-            "max_output_tokens": 1024,
+            "max_output_tokens": 2048,
         }
         
         response = modelo.generate_content(
@@ -431,58 +769,73 @@ MÍNIMO DE 10 LINHAS DE INTERPRETAÇÃO."""
         if response and response.text:
             return response.text
         else:
-            return gerar_fallback(cartas)
+            return gerar_fallback_profissional(cartas_jung, pergunta_usuario)
             
     except Exception as e:
-        return gerar_fallback(cartas)
+        return gerar_fallback_profissional(cartas_jung if 'cartas_jung' in locals() else [], pergunta_usuario)
 
-def gerar_fallback(cartas):
-    """Gera uma interpretação de fallback quando a API falha"""
-    nomes_cartas = [f"{c['carta']['nome']} ({c['orientacao']})" for c in cartas]
+def gerar_fallback_profissional(cartas, pergunta):
+    """Fallback elegante quando API falha"""
     
-    return f"""🔮 **Sua Tiragem de Baralho Cigano**
+    if not cartas:
+        return "🔮 Sua tiragem está pronta para ser interpretada. Por favor, tente novamente em instantes."
+    
+    texto = f"""🔮 **ANÁLISE PROFUNDA DO BARALHO CIGANO**
 
-✨ **Cartas reveladas:**
-• Passado: {cartas[0]['carta']['nome']} ({cartas[0]['orientacao']})
-• Presente: {cartas[1]['carta']['nome']} ({cartas[1]['orientacao']})
-• Futuro: {cartas[2]['carta']['nome']} ({cartas[2]['orientacao']})
+🎴 **Sua Tiragem Revela:**
 
-💫 **Mensagem das cartas:**
+**Passado - {cartas[0]['nome']} ({cartas[0]['orientacao'].upper()})**
+{cartas[0]['significado']}
 
-Sua tiragem mostra uma jornada de evolução e aprendizado. 
-As cartas que você tirou fisicamente carregam sua energia única e pessoal.
+**Arquétipo de Jung:** {cartas[0]['arquetipo_jung']}
+Este arquétipo emerge do inconsciente coletivo trazendo uma sabedoria ancestral para sua jornada.
 
-**Passado - {cartas[0]['carta']['nome']}:** 
-{cartas[0]['carta']['significado_invertido'] if cartas[0]['orientacao'] == 'invertida' else cartas[0]['carta']['significado_normal']}
+**Presente - {cartas[1]['nome']} ({cartas[1]['orientacao'].upper()})**
+{cartas[1]['significado']}
 
-**Presente - {cartas[1]['carta']['nome']}:** 
-{cartas[1]['carta']['significado_invertido'] if cartas[1]['orientacao'] == 'invertida' else cartas[1]['carta']['significado_normal']}
+**Aspectos da Sombra:** {cartas[1]['sombra']}
+A sombra não é sua inimiga, mas sim a guardiã de seu potencial não reconhecido.
 
-**Futuro - {cartas[2]['carta']['nome']}:** 
-{cartas[2]['carta']['significado_invertido'] if cartas[2]['orientacao'] == 'invertida' else cartas[2]['carta']['significado_normal']}
+**Futuro - {cartas[2]['nome']} ({cartas[2]['orientacao'].upper()})**
+{cartas[2]['significado']}
 
-🌟 Confie na sabedoria das cartas e na sua intuição. O Baralho Cigano é um espelho da sua alma.
+**Integração Anima/Animus:** {cartas[2]['anima_animus']}
+A totalidade psíquica se revela na dança entre os opostos complementares.
 
-🙏 Lembre-se: você tem o poder de criar seu próprio destino."""
+💫 **SÍNTESE JUNGUIANA**
+
+O Baralho Cigano, assim como os sonhos para Jung, é uma ponte entre seu consciente e inconsciente. As cartas que você tirou fisicamente carregam sua energia única e neste momento revelam:
+
+A jornada do **{cartas[0]['nome']}** para o **{cartas[1]['nome']}** e então para o **{cartas[2]['nome']}** conta a história de {pergunta if pergunta else "sua evolução pessoal"}.
+
+O inconsciente coletivo, através destes símbolos arquetípicos, sussurra: você está no caminho da individuação. Cada carta é um espelho de sua psique em movimento.
+
+🌟 **MENSAGEM DE SABEDORIA**
+
+Como diria Jung: "Quem olha para fora sonha; quem olha para dentro desperta." Suas cartas são um convite ao despertar. Confie no processo de transformação que já está em curso.
+
+🙏 Que a sabedoria ancestral do Baralho Cigano ilumine seu caminho."""
+    
+    return texto
 
 # ============================================
 # INTERFACE PRINCIPAL
 # ============================================
 def main():
-    st.title("🔮 Baralho Cigano Online")
+    st.title("🔮 Baralho Cigano • Análise Junguiana")
     st.markdown("---")
     
-    # Caixa de instruções
+    # Instruções elegantes
     st.markdown("""
     <div class="instrucoes-box">
-        <h4>🎴 Como usar:</h4>
-        <ol>
-            <li>Pegue seu baralho físico de Baralho Cigano (36 cartas)</li>
-            <li>Embaralhe e faça sua pergunta mentalmente</li>
-            <li>Tire 3 cartas fisicamente na ordem: <strong>PASSADO, PRESENTE, FUTURO</strong></li>
-            <li>Insira o nome das cartas abaixo e escolha se estão normais ou invertidas</li>
-            <li>Clique em "INTERPRETAR CARTAS" para receber sua leitura</li>
-        </ol>
+        <h4>🎴 RITUAL DE CONSULTA</h4>
+        <p style="font-size: 16px; line-height: 1.8;">
+        1️⃣ Pegue seu baralho físico de 36 cartas<br>
+        2️⃣ Embaralhe enquanto formula sua pergunta interiormente<br>
+        3️⃣ Tire 3 cartas fisicamente na ordem: PASSADO • PRESENTE • FUTURO<br>
+        4️⃣ Insira os nomes das cartas e suas orientações<br>
+        5️⃣ Receba uma análise profunda com Psicologia Junguiana
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -494,51 +847,82 @@ def main():
     if 'pergunta' not in st.session_state:
         st.session_state.pergunta = ""
     
-    # Sidebar - Instruções rápidas
+    # SIDEBAR - FUNDO PRETO
     with st.sidebar:
-        st.header("🎴 Suas Cartas")
+        st.markdown("<h2 style='color: white;'>🎴 SUAS CARTAS</h2>", unsafe_allow_html=True)
         st.markdown("---")
         
-        # Lista de cartas adicionadas
+        # Progresso
         if st.session_state.cartas_adicionadas:
-            st.subheader("📋 Cartas selecionadas:")
+            st.markdown(f"""
+            <div class="progresso-card" style="background: #1A1A1A; border-color: #333;">
+                <div style="color: white; font-size: 14px;">CARTAS INSERIDAS</div>
+                <div class="progresso-numero" style="color: #FFD700;">{len(st.session_state.cartas_adicionadas)}/3</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("---")
+            st.markdown("<h3 style='color: white;'>📋 Tiragem Atual:</h3>", unsafe_allow_html=True)
+            
             for i, carta_info in enumerate(st.session_state.cartas_adicionadas):
                 orientacao_simbolo = "🔄" if carta_info['orientacao'] == 'invertida' else "⬆️"
-                st.write(f"{i+1}. {carta_info['carta']['nome']} {orientacao_simbolo}")
-                st.write(f"   📍 {carta_info['posicao']}")
-                st.markdown("---")
+                cor = "#FFD700" if carta_info['orientacao'] == 'invertida' else "white"
+                st.markdown(f"""
+                <div style='margin: 10px 0; padding: 10px; background: #1A1A1A; border-radius: 8px;'>
+                    <span style='color: {cor}; font-weight: bold;'>{i+1}. {carta_info['carta']['nome']} {orientacao_simbolo}</span><br>
+                    <span style='color: #AAA; font-size: 12px;'>📍 {carta_info['posicao']}</span>
+                </div>
+                """, unsafe_allow_html=True)
         
-        # Botão para limpar tudo
-        if st.button("🗑️ Nova Tiragem", use_container_width=True):
+        # Botão nova tiragem
+        if st.button("🔄 NOVA TIRAGEM", use_container_width=True):
             st.session_state.cartas_adicionadas = []
             st.session_state.interpretacao = None
             st.session_state.pergunta = ""
             st.rerun()
+        
+        st.markdown("---")
+        st.markdown("""
+        <div style='color: #AAA; font-size: 12px; padding: 15px 0;'>
+            <span style='color: #FFD700;'>Carl Gustav Jung</span><br>
+            "Até que você torne consciente o inconsciente, ele dirigirá sua vida e você chamará isso de destino."
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Área principal - Entrada das cartas
-    st.subheader("🃏 Insira suas 3 cartas na ordem tirada")
+    # ÁREA PRINCIPAL - FUNDO BRANCO
+    col1, col2 = st.columns([2, 1])
     
-    # Pergunta do consulente
-    pergunta = st.text_area(
-        "💭 Qual sua pergunta ou intenção para esta consulta?",
-        value=st.session_state.pergunta,
-        placeholder="Ex: Como está minha vida amorosa? O que vem pela frente no trabalho?",
-        height=80,
-        key="pergunta_input"
-    )
-    st.session_state.pergunta = pergunta
+    with col1:
+        pergunta = st.text_area(
+            "💭 **SUA PERGUNTA**",
+            value=st.session_state.pergunta,
+            placeholder="Ex: Como posso me realizar profissionalmente? O que meu coração busca no amor? Qual o próximo passo na minha jornada?",
+            height=100
+        )
+        st.session_state.pergunta = pergunta
     
-    # Criar 3 linhas para entrada das cartas
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if pergunta:
+            st.markdown("""
+            <div style='background: #F8F9FA; padding: 15px; border-radius: 8px; border-left: 4px solid #000;'>
+                <span style='font-weight: 700;'>🎯 FOCO DA ANÁLISE</span><br>
+                <span style='color: #495057;'>Sua pergunta guiará a interpretação junguiana</span>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("<h3>🃏 INSIRA SUAS 3 CARTAS NA ORDEM TIRADA</h3>", unsafe_allow_html=True)
+    
+    # Input das 3 cartas
     posicoes = ["PASSADO", "PRESENTE", "FUTURO"]
     
     for i, posicao in enumerate(posicoes):
-        st.markdown(f"### {i+1}ª Carta - {posicao}")
-        
         col1, col2, col3 = st.columns([2, 1, 1])
         
         with col1:
             nome_carta = st.text_input(
-                f"Nome da carta",
+                f"{i+1}ª Carta - {posicao}",
                 placeholder="Ex: O Cavaleiro, A Casa, O Sol...",
                 key=f"carta_nome_{i}",
                 value=st.session_state.get(f"carta_nome_{i}_value", "")
@@ -553,45 +937,39 @@ def main():
             )
         
         with col3:
-            if st.button(f"✅ Adicionar {posicao}", key=f"btn_adicionar_{i}"):
+            if st.button(f"✅ ADICIONAR", key=f"btn_adicionar_{i}"):
                 if nome_carta:
                     valida, id_carta, carta = validar_carta(nome_carta)
                     
                     if valida:
-                        # Verificar se já não adicionou esta posição
-                        posicao_ja_adicionada = False
+                        posicao_existente = False
                         for c in st.session_state.cartas_adicionadas:
                             if c['posicao'] == posicao:
-                                posicao_ja_adicionada = True
+                                posicao_existente = True
                                 break
                         
-                        if not posicao_ja_adicionada:
-                            # Adicionar carta
+                        if not posicao_existente:
                             st.session_state.cartas_adicionadas.append({
                                 'carta': carta,
                                 'id': id_carta,
                                 'orientacao': orientacao,
                                 'posicao': posicao
                             })
-                            # Ordenar por posição
-                            ordem_posicoes = {"PASSADO": 0, "PRESENTE": 1, "FUTURO": 2}
-                            st.session_state.cartas_adicionadas.sort(key=lambda x: ordem_posicoes[x['posicao']])
+                            
+                            ordem = {"PASSADO": 0, "PRESENTE": 1, "FUTURO": 2}
+                            st.session_state.cartas_adicionadas.sort(key=lambda x: ordem[x['posicao']])
                             
                             st.session_state[f"carta_nome_{i}_value"] = ""
-                            st.success(f"✅ {carta['nome']} adicionada ao {posicao}!")
+                            st.success(f"✅ {carta['nome']} adicionada ao {posicao}")
                             st.rerun()
                         else:
-                            st.warning(f"⚠️ Você já adicionou uma carta para {posicao}")
+                            st.warning(f"⚠️ {posicao} já tem uma carta")
                     else:
-                        # Sugerir cartas similares
-                        st.error(f"❌ Carta '{nome_carta}' não encontrada!")
-                        
-                        # Buscar sugestões
+                        st.error(f"❌ Carta '{nome_carta}' não encontrada")
                         sugestoes = []
                         for id_c, carta_c in BARALHO_CIGANO.items():
-                            if nome_carta.lower() in carta_c['nome'].lower()[:len(nome_carta)]:
+                            if nome_carta.lower() in carta_c['nome'].lower():
                                 sugestoes.append(carta_c['nome'])
-                        
                         if sugestoes:
                             st.info(f"💡 Você quis dizer: {', '.join(sugestoes[:3])}?")
                 else:
@@ -599,12 +977,11 @@ def main():
         
         st.markdown("---")
     
-    # Verificar se todas as 3 cartas foram adicionadas
+    # Exibir cartas e botão de interpretação
     if len(st.session_state.cartas_adicionadas) == 3:
-        st.success("✅ Todas as 3 cartas foram adicionadas com sucesso!")
+        st.success("✅ Todas as 3 cartas foram inseridas com sucesso!")
         
-        # Exibir as cartas adicionadas
-        st.subheader("🃏 Suas Cartas")
+        st.markdown("<h3>🃏 SUAS CARTAS</h3>", unsafe_allow_html=True)
         cols = st.columns(3)
         
         for idx, (col, carta_info) in enumerate(zip(cols, st.session_state.cartas_adicionadas)):
@@ -615,14 +992,20 @@ def main():
                     carta_info['orientacao']
                 )
                 st.markdown(html_card, unsafe_allow_html=True)
+                
+                # Mostrar arquétipo
+                st.markdown(f"""
+                <div style='text-align: center; margin-top: 5px; font-size: 12px; color: #6C757D;'>
+                    🏛 {carta_info['carta']['arquetipo_jung'].split(' - ')[0]}
+                </div>
+                """, unsafe_allow_html=True)
         
-        # Botão para interpretação
         st.markdown("---")
         col1, col2, col3 = st.columns([1, 2, 1])
         
         with col2:
-            if st.button("🔮 **INTERPRETAR CARTAS**", use_container_width=True, type="primary"):
-                with st.spinner("🔮 Consultando os mistérios do Baralho Cigano..."):
+            if st.button("🔮 **ANÁLISE JUNGUIANA COMPLETA**", use_container_width=True, type="primary"):
+                with st.spinner("🔮 Conectando com o inconsciente coletivo e sabedoria cigana..."):
                     interpretacao = interpretar_tiragem(
                         st.session_state.cartas_adicionadas,
                         st.session_state.pergunta
@@ -630,41 +1013,33 @@ def main():
                     st.session_state.interpretacao = interpretacao
                     st.rerun()
     
-    elif len(st.session_state.cartas_adicionadas) > 0:
-        st.info(f"📌 Você adicionou {len(st.session_state.cartas_adicionadas)} de 3 cartas. Complete a tiragem.")
-    
     # Exibir interpretação
     if st.session_state.interpretacao:
         st.markdown("---")
-        st.subheader("🔮 Mensagem do Baralho Cigano")
+        st.markdown("<h2 style='text-align: center;'>🔮 ANÁLISE DO BARALHO CIGANO</h2>", unsafe_allow_html=True)
         
         with st.container():
             st.markdown('<div class="interpretacao-box">', unsafe_allow_html=True)
             st.markdown(st.session_state.interpretacao)
             st.markdown('</div>', unsafe_allow_html=True)
-            st.caption("🙏 Lembre-se: As cartas são um guia, não uma verdade absoluta. O livre arbítrio sempre prevalece.")
+            st.caption("🙏 O Baralho Cigano é um espelho da alma. O livre arbítrio é seu maior poder.")
         
-        # Botão para nova consulta
-        if st.button("🔄 Nova Tiragem", key="nova_consulta_fim"):
+        if st.button("🔄 NOVA CONSULTA", key="nova_consulta_fim"):
             st.session_state.cartas_adicionadas = []
             st.session_state.interpretacao = None
             st.session_state.pergunta = ""
             st.rerun()
     
     # Rodapé
-    st.markdown("---")
-    st.markdown(
-        """
-        <div style='text-align: center; color: #a0a0a0; padding: 20px;'>
-            <small>
-            🔮 Baralho Cigano Tradicional • 36 Lâminas • Interpretação com IA Gemini<br>
-            ⚡ Use seu baralho físico, insira as cartas tiradas<br>
-            ✨ Cada consulta é única e pessoal
-            </small>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <div class="rodape">
+        <small>
+        🔮 Baralho Cigano Tradicional • 36 Lâminas • Psicologia Analítica Junguiana<br>
+        ⚡ Use seu baralho físico • Insira as cartas tiradas • Receba análise profunda<br>
+        ✨ A sabedoria ancestral encontra a psicologia profunda
+        </small>
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
