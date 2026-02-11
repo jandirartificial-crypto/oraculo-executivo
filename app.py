@@ -357,7 +357,7 @@ def interpretar_tiragem(cartas, pergunta_usuario, historico=""):
     """
     Envia a tiragem para o Gemini e retorna a interpretação
     """
-    modelo = genai.GenerativeModel('gemini-1.5-pro-latest')
+    modelo = genai.GenerativeModel('models/gemini-1.5-flash')
     
     # Construir o prompt detalhado
     prompt = f"""
