@@ -228,7 +228,7 @@ BARALHO_CIGANO = {
         "nome": "O Cavaleiro", 
         "simbolo": "♞", 
         "palavras_chave": "Notícias, movimento, chegada, mensageiro",
-        "arquétipo_jung": "O Mensageiro - Hermes, Mercúrio, transição entre mundos",
+        "arquetipo_jung": "O Mensageiro - Hermes, Mercúrio, transição entre mundos",
         "sombra": "Pressa, ansiedade, notícias indesejadas",
         "anima_animus": "Figura masculina dinâmica, parceiro em movimento",
         "significado_normal": "Notícias chegando, visitas, movimento rápido. Indica mensagens importantes a caminho. Representa o arquétipo do mensageiro que traz transformação.",
@@ -238,7 +238,7 @@ BARALHO_CIGANO = {
         "nome": "O Trevo", 
         "simbolo": "🍀", 
         "palavras_chave": "Sorte, esperança, brevidade, sincronicidade",
-        "arquétipo_jung": "Sincronicidade - eventos significativos, acaso com propósito",
+        "arquetipo_jung": "Sincronicidade - eventos significativos, acaso com propósito",
         "sombra": "Sorte atrasada, expectativas irreais",
         "anima_animus": "Esperança, fé no invisível",
         "significado_normal": "Pequena sorte, oportunidades passageiras. Momento de esperança e otimismo. Jung via nestes eventos a sincronicidade - conexões significativas além da causalidade.",
@@ -248,7 +248,7 @@ BARALHO_CIGANO = {
         "nome": "O Navio", 
         "simbolo": "⛵", 
         "palavras_chave": "Viagem, comércio, distância, jornada",
-        "arquétipo_jung": "A Jornada - processo de individuação, travessia",
+        "arquetipo_jung": "A Jornada - processo de individuação, travessia",
         "sombra": "Jornada interrompida, medo do desconhecido",
         "anima_animus": "Expansão da consciência, horizontes",
         "significado_normal": "Viagens, negócios à distância, mudanças. Expansão de horizontes. A jornada do herói em busca de si mesmo.",
@@ -258,7 +258,7 @@ BARALHO_CIGANO = {
         "nome": "A Casa", 
         "simbolo": "🏠", 
         "palavras_chave": "Lar, família, estabilidade, self",
-        "arquétipo_jung": "O Self - totalidade, centro da psique",
+        "arquetipo_jung": "O Self - totalidade, centro da psique",
         "sombra": "Insegurança doméstica, desarmonia",
         "anima_animus": "Segurança interior, lar emocional",
         "significado_normal": "Segurança doméstica, harmonia familiar. Representa o Self - nossa morada interior, centro do ser.",
@@ -268,7 +268,7 @@ BARALHO_CIGANO = {
         "nome": "A Árvore", 
         "simbolo": "🌳", 
         "palavras_chave": "Saúde, crescimento, ancestralidade",
-        "arquétipo_jung": "A Grande Mãe - nutriz, raízes, ancestralidade",
+        "arquetipo_jung": "A Grande Mãe - nutriz, raízes, ancestralidade",
         "sombra": "Estagnação, bloqueio energético",
         "anima_animus": "Conexão com raízes, crescimento interior",
         "significado_normal": "Boa saúde, crescimento pessoal. A Árvore da Vida - conexão com ancestrais e o inconsciente coletivo.",
@@ -278,7 +278,7 @@ BARALHO_CIGANO = {
         "nome": "As Nuvens", 
         "simbolo": "☁️", 
         "palavras_chave": "Confusão, dúvida, incerteza",
-        "arquétipo_jung": "A Névoa - inconsciente, mistério, transição",
+        "arquetipo_jung": "A Névoa - inconsciente, mistério, transição",
         "sombra": "Confusão mental, ilusão",
         "anima_animus": "Intuição enevoada, busca por clareza",
         "significado_normal": "Período de confusão, falta de clareza. A névoa do inconsciente que antecede a iluminação.",
@@ -288,7 +288,7 @@ BARALHO_CIGANO = {
         "nome": "A Serpente", 
         "simbolo": "🐍", 
         "palavras_chave": "Traição, sabedoria, tentação",
-        "arquétipo_jung": "A Sombra - aspectos reprimidos, sabedoria instintiva",
+        "arquetipo_jung": "A Sombra - aspectos reprimidos, sabedoria instintiva",
         "sombra": "Falsidade, manipulação",
         "anima_animus": "Sabedoria feminina, intuição",
         "significado_normal": "Cuidado com pessoas falsas. Sabedoria feminina, intuição aguçada. A serpente como símbolo de transformação e cura.",
@@ -298,7 +298,7 @@ BARALHO_CIGANO = {
         "nome": "O Caixão", 
         "simbolo": "⚰️", 
         "palavras_chave": "Fim, transformação, renascimento",
-        "arquétipo_jung": "Morte/Renascimento - transformação, individuação",
+        "arquetipo_jung": "Morte/Renascimento - transformação, individuação",
         "sombra": "Medo da morte, apego ao velho",
         "anima_animus": "Libertação, transcendência",
         "significado_normal": "Fim de ciclo, transformação profunda. A morte simbólica necessária para o renascimento.",
@@ -308,7 +308,7 @@ BARALHO_CIGANO = {
         "nome": "O Buquê", 
         "simbolo": "💐", 
         "palavras_chave": "Felicidade, convite, beleza",
-        "arquétipo_jung": "A Flor - self realizado, beleza interior",
+        "arquetipo_jung": "A Flor - self realizado, beleza interior",
         "sombra": "Felicidade superficial",
         "anima_animus": "Reconhecimento, afeto",
         "significado_normal": "Alegria, presentes, convites. Reconhecimento e momentos felizes. A flor da individuação.",
@@ -318,7 +318,7 @@ BARALHO_CIGANO = {
         "nome": "A Foice", 
         "simbolo": "🔪", 
         "palavras_chave": "Corte, decisão, separação",
-        "arquétipo_jung": "O Ceifador - discernimento, cortes necessários",
+        "arquetipo_jung": "O Ceifador - discernimento, cortes necessários",
         "sombra": "Separação dolorosa, violência",
         "anima_animus": "Decisão, clareza",
         "significado_normal": "Decisões rápidas, cortes necessários. Separação ou mudança brusca.",
@@ -328,7 +328,7 @@ BARALHO_CIGANO = {
         "nome": "O Chicote", 
         "simbolo": "🪢", 
         "palavras_chave": "Conflito, discussão, tensão",
-        "arquétipo_jung": "Confronto - integração da sombra projetada",
+        "arquetipo_jung": "Confronto - integração da sombra projetada",
         "sombra": "Violência, agressividade",
         "anima_animus": "Diálogo necessário",
         "significado_normal": "Discussões, conflitos, tensões. Necessidade de diálogo claro.",
@@ -338,7 +338,7 @@ BARALHO_CIGANO = {
         "nome": "Os Pássaros", 
         "simbolo": "🐦", 
         "palavras_chave": "Conversas, ansiedade, contato",
-        "arquétipo_jung": "Mensageiros - comunicação entre consciente/inconsciente",
+        "arquetipo_jung": "Mensageiros - comunicação entre consciente/inconsciente",
         "sombra": "Fofocas, ansiedade social",
         "anima_animus": "Conexão, diálogo",
         "significado_normal": "Boas conversas, contatos sociais. Notícias através de pessoas.",
@@ -348,7 +348,7 @@ BARALHO_CIGANO = {
         "nome": "A Criança", 
         "simbolo": "👶", 
         "palavras_chave": "Novo começo, inocência, confiança",
-        "arquétipo_jung": "A Criança Divina - potencial, futuro, renascimento",
+        "arquetipo_jung": "A Criança Divina - potencial, futuro, renascimento",
         "sombra": "Imaturidade, infantilidade",
         "anima_animus": "Inocência, confiança",
         "significado_normal": "Novos projetos, gravidez, confiança. A criança interior que precisa ser nutrida.",
@@ -358,7 +358,7 @@ BARALHO_CIGANO = {
         "nome": "A Raposa", 
         "simbolo": "🦊", 
         "palavras_chave": "Esperteza, desconfiança, trabalho",
-        "arquétipo_jung": "O Trickster - astúcia, travessura, adaptação",
+        "arquetipo_jung": "O Trickster - astúcia, travessura, adaptação",
         "sombra": "Manipulação, engano",
         "anima_animus": "Inteligência prática",
         "significado_normal": "Pessoa astuta, inteligente. O Trickster que traz ensinamentos através da esperteza.",
@@ -368,7 +368,7 @@ BARALHO_CIGANO = {
         "nome": "O Urso", 
         "simbolo": "🐻", 
         "palavras_chave": "Força, poder, proteção",
-        "arquétipo_jung": "O Guardião - força bruta, poder ancestral",
+        "arquetipo_jung": "O Guardião - força bruta, poder ancestral",
         "sombra": "Abuso de poder, possessividade",
         "anima_animus": "Proteção materna/paterna",
         "significado_normal": "Autoridade, proteção materna, força interior. O poder que protege.",
@@ -378,7 +378,7 @@ BARALHO_CIGANO = {
         "nome": "As Estrelas", 
         "simbolo": "⭐", 
         "palavras_chave": "Espiritualidade, esperança, destino",
-        "arquétipo_jung": "O Self - totalidade, guia interior",
+        "arquetipo_jung": "O Self - totalidade, guia interior",
         "sombra": "Desesperança, bloqueio espiritual",
         "anima_animus": "Conexão divina",
         "significado_normal": "Boa sorte espiritual, realização de desejos. As estrelas como mapa da alma.",
@@ -388,7 +388,7 @@ BARALHO_CIGANO = {
         "nome": "A Cegonha", 
         "simbolo": "🕊️", 
         "palavras_chave": "Mudança, parto, evolução",
-        "arquétipo_jung": "Transformação - novos começos, fertilidade",
+        "arquetipo_jung": "Transformação - novos começos, fertilidade",
         "sombra": "Mudança indesejada",
         "anima_animus": "Criatividade, nascimento",
         "significado_normal": "Mudança positiva, nascimento, evolução na vida. O novo que chega.",
@@ -398,7 +398,7 @@ BARALHO_CIGANO = {
         "nome": "O Cachorro", 
         "simbolo": "🐕", 
         "palavras_chave": "Amizade, lealdade, confiança",
-        "arquétipo_jung": "O Amigo Fiel - lealdade, instinto domesticado",
+        "arquetipo_jung": "O Amigo Fiel - lealdade, instinto domesticado",
         "sombra": "Lealdade cega, dependência",
         "anima_animus": "Confiança, parceria",
         "significado_normal": "Amigo verdadeiro, parceria fiel, amor incondicional.",
@@ -408,7 +408,7 @@ BARALHO_CIGANO = {
         "nome": "A Torre", 
         "simbolo": "🏰", 
         "palavras_chave": "Solidão, autoridade, isolamento",
-        "arquétipo_jung": "O Eremita - introspecção, sabedoria interior",
+        "arquetipo_jung": "O Eremita - introspecção, sabedoria interior",
         "sombra": "Aprisionamento, arrogância",
         "anima_animus": "Autoconhecimento",
         "significado_normal": "Instituições, orgulho, posição social. A torre como espaço de sabedoria na solidão.",
@@ -418,7 +418,7 @@ BARALHO_CIGANO = {
         "nome": "O Jardim", 
         "simbolo": "🌺", 
         "palavras_chave": "Socialização, eventos, admiração",
-        "arquétipo_jung": "O Paraíso - coletividade, pertencimento",
+        "arquetipo_jung": "O Paraíso - coletividade, pertencimento",
         "sombra": "Futilidade social",
         "anima_animus": "Conexão comunitária",
         "significado_normal": "Eventos sociais, networking, admiração pública. O self em relação.",
@@ -428,7 +428,7 @@ BARALHO_CIGANO = {
         "nome": "A Montanha", 
         "simbolo": "⛰️", 
         "palavras_chave": "Obstáculo, desafio, bloqueio",
-        "arquétipo_jung": "A Montanha - desafio, transcendência",
+        "arquetipo_jung": "A Montanha - desafio, transcendência",
         "sombra": "Impedimento, frustração",
         "anima_animus": "Superação, força",
         "significado_normal": "Desafios a superar, obstáculos temporários. A montanha como jornada de individuação.",
@@ -438,7 +438,7 @@ BARALHO_CIGANO = {
         "nome": "O Caminho", 
         "simbolo": "🛤️", 
         "palavras_chave": "Escolha, decisão, opções",
-        "arquétipo_jung": "A Encruzilhada - escolhas, livre arbítrio",
+        "arquetipo_jung": "A Encruzilhada - escolhas, livre arbítrio",
         "sombra": "Indecisão, caminho errado",
         "anima_animus": "Direção, propósito",
         "significado_normal": "Escolhas a fazer, encruzilhada. O livre arbítrio e a responsabilidade das escolhas.",
@@ -448,7 +448,7 @@ BARALHO_CIGANO = {
         "nome": "O Rato", 
         "simbolo": "🐀", 
         "palavras_chave": "Perda, roubo, desgaste",
-        "arquétipo_jung": "A Sombra - aspectos que nos corroem",
+        "arquetipo_jung": "A Sombra - aspectos que nos corroem",
         "sombra": "Autossabotagem, perda",
         "anima_animus": "Desapego, renovação",
         "significado_normal": "Pequenas perdas, desgaste, algo se esvaindo. A sombra que consome energia.",
@@ -458,7 +458,7 @@ BARALHO_CIGANO = {
         "nome": "O Coração", 
         "simbolo": "❤️", 
         "palavras_chave": "Amor, paixão, emoção",
-        "arquétipo_jung": "Eros - amor, conexão, anima/animus",
+        "arquetipo_jung": "Eros - amor, conexão, anima/animus",
         "sombra": "Dependência emocional, ciúmes",
         "anima_animus": "Amor verdadeiro, união",
         "significado_normal": "Amor verdadeiro, romance, felicidade no amor. A integração da anima/animus.",
@@ -468,7 +468,7 @@ BARALHO_CIGANO = {
         "nome": "A Aliança", 
         "simbolo": "💍", 
         "palavras_chave": "Compromisso, casamento, parceria",
-        "arquétipo_jung": "A Conjunção - união dos opostos, totalidade",
+        "arquetipo_jung": "A Conjunção - união dos opostos, totalidade",
         "sombra": "Compromisso vazio",
         "anima_animus": "União sagrada",
         "significado_normal": "Casamento, sociedade, contratos. A conjunção alquímica dos opostos.",
@@ -478,7 +478,7 @@ BARALHO_CIGANO = {
         "nome": "O Livro", 
         "simbolo": "📚", 
         "palavras_chave": "Segredo, conhecimento, estudo",
-        "arquétipo_jung": "O Sábio - conhecimento, sabedoria interior",
+        "arquetipo_jung": "O Sábio - conhecimento, sabedoria interior",
         "sombra": "Saber superficial, dogmatismo",
         "anima_animus": "Busca pela verdade",
         "significado_normal": "Aprendizado, segredos revelados. O livro da vida, conhecimento interior.",
@@ -488,7 +488,7 @@ BARALHO_CIGANO = {
         "nome": "A Carta", 
         "simbolo": "✉️", 
         "palavras_chave": "Mensagem, comunicação, documento",
-        "arquétipo_jung": "O Mensageiro - comunicação do inconsciente",
+        "arquetipo_jung": "O Mensageiro - comunicação do inconsciente",
         "sombra": "Má comunicação",
         "anima_animus": "Diálogo, expressão",
         "significado_normal": "Notícias formais, documentos. Mensagens do inconsciente.",
@@ -498,7 +498,7 @@ BARALHO_CIGANO = {
         "nome": "O Homem", 
         "simbolo": "👨", 
         "palavras_chave": "Masculino, ação, figura paterna",
-        "arquétipo_jung": "Animus - princípio masculino interior",
+        "arquetipo_jung": "Animus - princípio masculino interior",
         "sombra": "Masculino tóxico, passividade",
         "anima_animus": "Ação, iniciativa",
         "significado_normal": "Figura masculina, parceiro. O animus integrado na psique feminina.",
@@ -508,7 +508,7 @@ BARALHO_CIGANO = {
         "nome": "A Mulher", 
         "simbolo": "👩", 
         "palavras_chave": "Feminino, intuição, figura materna",
-        "arquétipo_jung": "Anima - princípio feminino interior",
+        "arquetipo_jung": "Anima - princípio feminino interior",
         "sombra": "Feminino reprimido, possessividade",
         "anima_animus": "Intuição, acolhimento",
         "significado_normal": "Figura feminina, parceira. A anima integrada na psique masculina.",
@@ -518,7 +518,7 @@ BARALHO_CIGANO = {
         "nome": "Os Lírios", 
         "simbolo": "⚜️", 
         "palavras_chave": "Virtude, paz, harmonia",
-        "arquétipo_jung": "A Pureza - self realizado, transcendência",
+        "arquetipo_jung": "A Pureza - self realizado, transcendência",
         "sombra": "Falsa pureza, hipocrisia",
         "anima_animus": "Harmonia interior",
         "significado_normal": "Paz interior, harmonia familiar. A pureza do self realizado.",
@@ -528,7 +528,7 @@ BARALHO_CIGANO = {
         "nome": "O Sol", 
         "simbolo": "☀️", 
         "palavras_chave": "Sucesso, energia, felicidade",
-        "arquétipo_jung": "O Self Iluminado - consciência, totalidade",
+        "arquetipo_jung": "O Self Iluminado - consciência, totalidade",
         "sombra": "Ego inflado, arrogância",
         "anima_animus": "Realização, alegria",
         "significado_normal": "Sucesso garantido, felicidade plena. O self iluminado pela consciência.",
@@ -538,7 +538,7 @@ BARALHO_CIGANO = {
         "nome": "A Lua", 
         "simbolo": "🌙", 
         "palavras_chave": "Intuição, emoção, ciclo",
-        "arquétipo_jung": "A Grande Mãe - inconsciente, mistério",
+        "arquetipo_jung": "A Grande Mãe - inconsciente, mistério",
         "sombra": "Confusão emocional, medos",
         "anima_animus": "Intuição, receptividade",
         "significado_normal": "Intuição aguçada, emoções. A luz do inconsciente.",
@@ -548,7 +548,7 @@ BARALHO_CIGANO = {
         "nome": "A Chave", 
         "simbolo": "🔑", 
         "palavras_chave": "Solução, destino, abertura",
-        "arquétipo_jung": "A Solução - chave para o inconsciente",
+        "arquetipo_jung": "A Solução - chave para o inconsciente",
         "sombra": "Oportunidade perdida",
         "anima_animus": "Resolução, acesso",
         "significado_normal": "Solução encontrada, portas abertas. A chave para o self.",
@@ -558,7 +558,7 @@ BARALHO_CIGANO = {
         "nome": "O Peixe", 
         "simbolo": "🐟", 
         "palavras_chave": "Dinheiro, abundância, prosperidade",
-        "arquétipo_jung": "Abundância - nutrição, prosperidade",
+        "arquetipo_jung": "Abundância - nutrição, prosperidade",
         "sombra": "Avareza, escassez",
         "anima_animus": "Fartura, provisão",
         "significado_normal": "Ganhos financeiros, prosperidade. O peixe como símbolo de abundância.",
@@ -568,7 +568,7 @@ BARALHO_CIGANO = {
         "nome": "A Âncora", 
         "simbolo": "⚓", 
         "palavras_chave": "Estabilidade, segurança, permanência",
-        "arquétipo_jung": "O Centro - segurança, grounding",
+        "arquetipo_jung": "O Centro - segurança, grounding",
         "sombra": "Estagnação, imobilidade",
         "anima_animus": "Firmeza, estabilidade",
         "significado_normal": "Segurança no trabalho, relacionamento estável. A âncora do self.",
@@ -578,13 +578,38 @@ BARALHO_CIGANO = {
         "nome": "A Cruz", 
         "simbolo": "✝️", 
         "palavras_chave": "Fardo, destino, espiritualidade",
-        "arquétipo_jung": "Sacrifício - transcendência, individuação",
+        "arquetipo_jung": "Sacrifício - transcendência, individuação",
         "sombra": "Vitimização, martírio",
         "anima_animus": "Fé, propósito",
         "significado_normal": "Fardo a carregar, destino. A cruz como caminho de individuação.",
         "significado_invertido": "Alívio, fardo retirado. Superação da provação."
     }
 }
+
+# ============================================
+# FUNÇÃO DE MIGRAÇÃO - GARANTE CAMPOS JUNGUIANOS
+# ============================================
+def migrar_cartas_para_formato_jung():
+    """
+    Garante que TODAS as cartas tenham os campos junguianos
+    Corrige o KeyError 'arquetipo_jung' (nota: está escrito 'arquetipo' sem acento no código)
+    """
+    campos_obrigatorios = {
+        'arquetipo_jung': 'Arquétipo Ancestral',
+        'sombra': 'Sombra a ser integrada',
+        'anima_animus': 'Integração dos opostos'
+    }
+    
+    for id_carta, carta in BARALHO_CIGANO.items():
+        for campo, valor_padrao in campos_obrigatorios.items():
+            if campo not in carta:
+                carta[campo] = valor_padrao
+                print(f"⚠️ Campo '{campo}' adicionado à carta {carta['nome']}")
+    
+    return BARALHO_CIGANO
+
+# APLICAR MIGRAÇÃO IMEDIATAMENTE
+BARALHO_CIGANO = migrar_cartas_para_formato_jung()
 
 # ============================================
 # FUNÇÕES DE BUSCA E VALIDAÇÃO
@@ -673,6 +698,59 @@ def criar_card_carta(carta, posicao, orientacao):
     """
     return html_card
 
+def obter_arquetipo_seguro(carta_info):
+    """
+    Função segura para obter o arquétipo da carta
+    Previne KeyError em qualquer situação
+    """
+    try:
+        # Tentar obter da carta no session_state
+        if 'carta' in carta_info and carta_info['carta']:
+            carta = carta_info['carta']
+            if 'arquetipo_jung' in carta and carta['arquetipo_jung']:
+                return carta['arquetipo_jung'].split(' - ')[0]
+        
+        # Tentar obter pelo ID
+        if 'id' in carta_info and carta_info['id'] in BARALHO_CIGANO:
+            carta_original = BARALHO_CIGANO[carta_info['id']]
+            if 'arquetipo_jung' in carta_original and carta_original['arquetipo_jung']:
+                return carta_original['arquetipo_jung'].split(' - ')[0]
+        
+        # Tentar obter pelo nome
+        if 'carta' in carta_info and 'nome' in carta_info['carta']:
+            nome_carta = carta_info['carta']['nome']
+            for cid, cdata in BARALHO_CIGANO.items():
+                if cdata['nome'] == nome_carta and 'arquetipo_jung' in cdata:
+                    return cdata['arquetipo_jung'].split(' - ')[0]
+        
+    except Exception:
+        pass
+    
+    return "Sabedoria Ancestral"
+
+def atualizar_cartas_session_state():
+    """
+    Atualiza todas as cartas no session_state com os dados mais recentes do BARALHO_CIGANO
+    """
+    if 'cartas_adicionadas' in st.session_state and st.session_state.cartas_adicionadas:
+        cartas_atualizadas = []
+        for carta_info in st.session_state.cartas_adicionadas:
+            if 'id' in carta_info and carta_info['id'] in BARALHO_CIGANO:
+                # Substituir pela carta atualizada do dicionário global
+                nova_carta_info = {
+                    'carta': BARALHO_CIGANO[carta_info['id']].copy(),
+                    'id': carta_info['id'],
+                    'orientacao': carta_info['orientacao'],
+                    'posicao': carta_info['posicao']
+                }
+                cartas_atualizadas.append(nova_carta_info)
+            else:
+                cartas_atualizadas.append(carta_info)
+        
+        st.session_state.cartas_adicionadas = cartas_atualizadas
+        return True
+    return False
+
 # ============================================
 # FUNÇÃO DE INTERPRETAÇÃO PROFUNDA COM GEMINI + JUNG
 # ============================================
@@ -687,15 +765,20 @@ def interpretar_tiragem(cartas, pergunta_usuario):
             carta = carta_info['carta']
             orientacao = carta_info['orientacao']
             
+            # Garantir que todos os campos existem
+            arquetipo = carta.get('arquetipo_jung', 'Arquétipo Ancestral')
+            sombra = carta.get('sombra', 'Sombra a ser integrada')
+            anima_animus = carta.get('anima_animus', 'Integração dos opostos')
+            
             cartas_jung.append({
                 'posicao': carta_info['posicao'],
                 'nome': carta['nome'],
                 'simbolo': carta['simbolo'],
                 'orientacao': orientacao,
                 'significado': carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal'],
-                'arquetipo_jung': carta['arquetipo_jung'],
-                'sombra': carta['sombra'],
-                'anima_animus': carta['anima_animus'],
+                'arquetipo_jung': arquetipo,
+                'sombra': sombra,
+                'anima_animus': anima_animus,
                 'palavras_chave': carta['palavras_chave']
             })
         
@@ -777,7 +860,7 @@ def interpretar_tiragem(cartas, pergunta_usuario):
 def gerar_fallback_profissional(cartas, pergunta):
     """Fallback elegante quando API falha"""
     
-    if not cartas:
+    if not cartas or len(cartas) < 3:
         return "🔮 Sua tiragem está pronta para ser interpretada. Por favor, tente novamente em instantes."
     
     texto = f"""🔮 **ANÁLISE PROFUNDA DO BARALHO CIGANO**
@@ -787,19 +870,19 @@ def gerar_fallback_profissional(cartas, pergunta):
 **Passado - {cartas[0]['nome']} ({cartas[0]['orientacao'].upper()})**
 {cartas[0]['significado']}
 
-**Arquétipo de Jung:** {cartas[0]['arquetipo_jung']}
+**Arquétipo de Jung:** {cartas[0].get('arquetipo_jung', 'Arquétipo Ancestral')}
 Este arquétipo emerge do inconsciente coletivo trazendo uma sabedoria ancestral para sua jornada.
 
 **Presente - {cartas[1]['nome']} ({cartas[1]['orientacao'].upper()})**
 {cartas[1]['significado']}
 
-**Aspectos da Sombra:** {cartas[1]['sombra']}
+**Aspectos da Sombra:** {cartas[1].get('sombra', 'Sombra a ser integrada')}
 A sombra não é sua inimiga, mas sim a guardiã de seu potencial não reconhecido.
 
 **Futuro - {cartas[2]['nome']} ({cartas[2]['orientacao'].upper()})**
 {cartas[2]['significado']}
 
-**Integração Anima/Animus:** {cartas[2]['anima_animus']}
+**Integração Anima/Animus:** {cartas[2].get('anima_animus', 'Integração dos opostos')}
 A totalidade psíquica se revela na dança entre os opostos complementares.
 
 💫 **SÍNTESE JUNGUIANA**
@@ -824,6 +907,23 @@ Como diria Jung: "Quem olha para fora sonha; quem olha para dentro desperta." Su
 def main():
     st.title("🔮 Baralho Cigano • Análise Junguiana")
     st.markdown("---")
+    
+    # ============================================
+    # CORREÇÃO DE MIGRAÇÃO - LIMPA SESSION STATE PROBLEMÁTICO
+    # ============================================
+    if 'cartas_adicionadas' in st.session_state:
+        # Verificar se as cartas têm os campos junguianos
+        if st.session_state.cartas_adicionadas:
+            primeira_carta = st.session_state.cartas_adicionadas[0]
+            if 'carta' in primeira_carta:
+                if 'arquetipo_jung' not in primeira_carta['carta']:
+                    # Session state corrompido - limpar completamente
+                    st.session_state.cartas_adicionadas = []
+                    st.session_state.interpretacao = None
+                    st.warning("🔄 Sistema atualizado! Por favor, insira novamente suas cartas.", icon="🃏")
+    
+    # Atualizar cartas existentes com os dados mais recentes
+    atualizar_cartas_session_state()
     
     # Instruções elegantes
     st.markdown("""
@@ -867,9 +967,10 @@ def main():
             for i, carta_info in enumerate(st.session_state.cartas_adicionadas):
                 orientacao_simbolo = "🔄" if carta_info['orientacao'] == 'invertida' else "⬆️"
                 cor = "#FFD700" if carta_info['orientacao'] == 'invertida' else "white"
+                nome_carta = carta_info['carta']['nome'] if 'carta' in carta_info and 'nome' in carta_info['carta'] else "Carta"
                 st.markdown(f"""
                 <div style='margin: 10px 0; padding: 10px; background: #1A1A1A; border-radius: 8px;'>
-                    <span style='color: {cor}; font-weight: bold;'>{i+1}. {carta_info['carta']['nome']} {orientacao_simbolo}</span><br>
+                    <span style='color: {cor}; font-weight: bold;'>{i+1}. {nome_carta} {orientacao_simbolo}</span><br>
                     <span style='color: #AAA; font-size: 12px;'>📍 {carta_info['posicao']}</span>
                 </div>
                 """, unsafe_allow_html=True)
@@ -950,7 +1051,7 @@ def main():
                         
                         if not posicao_existente:
                             st.session_state.cartas_adicionadas.append({
-                                'carta': carta,
+                                'carta': carta.copy(),  # Usar copy() para evitar referências
                                 'id': id_carta,
                                 'orientacao': orientacao,
                                 'posicao': posicao
@@ -986,6 +1087,10 @@ def main():
         
         for idx, (col, carta_info) in enumerate(zip(cols, st.session_state.cartas_adicionadas)):
             with col:
+                # Garantir que a carta está atualizada
+                if 'id' in carta_info and carta_info['id'] in BARALHO_CIGANO:
+                    carta_info['carta'] = BARALHO_CIGANO[carta_info['id']].copy()
+                
                 html_card = criar_card_carta(
                     carta_info['carta'],
                     carta_info['posicao'],
@@ -993,10 +1098,11 @@ def main():
                 )
                 st.markdown(html_card, unsafe_allow_html=True)
                 
-                # Mostrar arquétipo
+                # Mostrar arquétipo com função SEGURA
+                arquitetura = obter_arquetipo_seguro(carta_info)
                 st.markdown(f"""
                 <div style='text-align: center; margin-top: 5px; font-size: 12px; color: #6C757D;'>
-                    🏛 {carta_info['carta']['arquetipo_jung'].split(' - ')[0]}
+                    🏛 {arquitetura}
                 </div>
                 """, unsafe_allow_html=True)
         
@@ -1006,6 +1112,9 @@ def main():
         with col2:
             if st.button("🔮 **ANÁLISE JUNGUIANA COMPLETA**", use_container_width=True, type="primary"):
                 with st.spinner("🔮 Conectando com o inconsciente coletivo e sabedoria cigana..."):
+                    # ATUALIZAR CARTAS ANTES DA INTERPRETAÇÃO
+                    atualizar_cartas_session_state()
+                    
                     interpretacao = interpretar_tiragem(
                         st.session_state.cartas_adicionadas,
                         st.session_state.pergunta
