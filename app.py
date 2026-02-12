@@ -1046,16 +1046,17 @@ def interpretar_tiragem(cartas, pergunta_usuario):
             
             cartas_detalhadas.append({
                 'posicao': carta_info['posicao'],
-                'nome': carta['nome'],
-                'simbolo': carta['simbolo'],
+                'nome': carta.get('nome', 'Carta'),
+                'simbolo': carta.get('simbolo', '🃏'),
                 'orientacao': orientacao,
-                'significado': carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal'],
+                'significado': carta.get('significado_invertido' if orientacao == 'invertida' else 'significado_normal', 'Um momento de aprendizado e transformação.'),
                 'arquetipo_jung': carta.get('arquetipo_jung', 'Arquétipo Ancestral'),
                 'sombra': carta.get('sombra', 'Sombra a ser integrada'),
                 'anima_animus': carta.get('anima_animus', 'Integração dos opostos'),
                 'metafort': carta.get('metafort', ''),
                 'elemento': carta.get('elemento', 'Éter'),
-                'conselho': carta.get('conselho', 'Confie no processo')
+                'conselho': carta.get('conselho', 'Confie no processo'),
+                'palavras_chave': carta.get('palavras_chave', 'sabedoria, transformação, autoconhecimento')
             })
         
         # ============================================
@@ -1120,10 +1121,10 @@ Contexto identificado: {contexto}
 """
         
         generation_config = {
-            "temperature": 0.95,  # Mais criatividade
+            "temperature": 0.95,
             "top_p": 0.95,
             "top_k": 40,
-            "max_output_tokens": 3072,  # Mais tokens para respostas longas
+            "max_output_tokens": 3072,
         }
         
         response = modelo.generate_content(
@@ -1132,60 +1133,145 @@ Contexto identificado: {contexto}
         )
         
         if response and response.text:
-            # Aplicar estilo literário
             texto_final = aplicar_estilo_literario(response.text)
             return texto_final
         else:
             return gerar_fallback_profissional(cartas_detalhadas, pergunta_usuario)
             
     except Exception as e:
-        return gerar_fallback_profissional(cartas_detalhadas if 'cartas_detalhadas' in locals() else [], pergunta_usuario)
+        # Se cartas_detalhadas não existir, criar a partir das cartas originais
+        if 'cartas_detalhadas' not in locals() or not cartas_detalhadas:
+            cartas_detalhadas = []
+            for carta_info in cartas:
+                carta = carta_info['carta']
+                orientacao = carta_info['orientacao']
+                
+                cartas_detalhadas.append({
+                    'posicao': carta_info['posicao'],
+                    'nome': carta.get('nome', 'Carta'),
+                    'simbolo': carta.get('simbolo', '🃏'),
+                    'orientacao': orientacao,
+                    'significado': carta.get('significado_invertido' if orientacao == 'invertida' else 'significado_normal', 'Um momento de aprendizado'),
+                    'arquetipo_jung': carta.get('arquetipo_jung', 'Arquétipo Ancestral'),
+                    'sombra': carta.get('sombra', 'Sombra a ser integrada'),
+                    'anima_animus': carta.get('anima_animus', 'Integração dos opostos'),
+                    'metafort': carta.get('metafort', ''),
+                    'elemento': carta.get('elemento', 'Éter'),
+                    'conselho': carta.get('conselho', 'Confie no processo'),
+                    'palavras_chave': carta.get('palavras_chave', 'sabedoria, transformação')
+                })
+        
+        return gerar_fallback_profissional(cartas_detalhadas, pergunta_usuario)
 
 # ============================================
-# FALLBACK ENRIQUECIDO - NÍVEL CHATGPT
+# FALLBACK ENRIQUECIDO - VERSÃO 100% SEGURA
 # ============================================
 def gerar_fallback_profissional(cartas, pergunta):
-    """Fallback com qualidade literária - mesmo sem API"""
+    """Fallback com qualidade literária - 100% seguro contra KeyError"""
     
     if not cartas or len(cartas) < 3:
         return "🔮 Sua tiragem está pronta. Respire fundo e tente novamente em instantes."
     
-    # Extrair informações
+    # Extrair informações com .get() em ABSOLUTAMENTE TUDO
     passado = cartas[0]
     presente = cartas[1]
     futuro = cartas[2]
     
-    # Construir narrativa poética
+    # ============================================
+    # FUNÇÕES DE ACESSO SEGURO
+    # ============================================
+    def get_seguro(dicionario, chave, valor_padrao=""):
+        """Acessa dicionário com segurança, retornando valor padrão se chave não existir"""
+        if isinstance(dicionario, dict):
+            return dicionario.get(chave, valor_padrao)
+        return valor_padrao
+    
+    def get_primeira_palavra_chave(dicionario):
+        """Extrai a primeira palavra-chave com segurança"""
+        palavras = get_seguro(dicionario, 'palavras_chave', 'sabedoria')
+        if palavras and isinstance(palavras, str):
+            return palavras.split(',')[0].strip()
+        return 'sabedoria'
+    
+    # Extrair TODOS os campos com fallbacks
+    nome_passado = get_seguro(passado, 'nome', 'esta carta')
+    nome_presente = get_seguro(presente, 'nome', 'esta carta')
+    nome_futuro = get_seguro(futuro, 'nome', 'esta carta')
+    
+    significado_passado = get_seguro(passado, 'significado', 'um período de aprendizado')
+    significado_presente = get_seguro(presente, 'significado', 'um momento de transformação')
+    significado_futuro = get_seguro(futuro, 'significado', 'novas possibilidades')
+    
+    # Truncar significados no primeiro ponto
+    try:
+        sig_passado_resumo = str(significado_passado).split('.')[0].lower() if '.' in str(significado_passado) else str(significado_passado).lower()[:50]
+    except:
+        sig_passado_resumo = 'aprendizado'
+    
+    try:
+        sig_presente_resumo = str(significado_presente).split('.')[0].lower() if '.' in str(significado_presente) else str(significado_presente).lower()[:50]
+    except:
+        sig_presente_resumo = 'transformação'
+    
+    try:
+        sig_futuro_resumo = str(significado_futuro).split('.')[0].lower() if '.' in str(significado_futuro) else str(significado_futuro).lower()[:50]
+    except:
+        sig_futuro_resumo = 'renovação'
+    
+    # Metáforas
+    metafora_passado = get_seguro(passado, 'metafort', 'Esta carta carrega a sabedoria do tempo.')
+    metafora_presente = get_seguro(presente, 'metafort', 'Há um aprendizado silencioso acontecendo.')
+    metafora_futuro = get_seguro(futuro, 'metafort', 'Algo novo se anuncia no horizonte.')
+    
+    # Sombras e conselhos
+    sombra_passado = get_seguro(passado, 'sombra', 'cada desafio')
+    conselho_presente = get_seguro(presente, 'conselho', 'Confie no tempo do amadurecimento.')
+    conselho_futuro = get_seguro(futuro, 'conselho', 'Dê o primeiro passo - mesmo pequeno.')
+    anima_futuro = get_seguro(futuro, 'anima_animus', 'encontre seu centro')
+    
+    # Elementos (CRÍTICO - causa KeyError)
+    elemento_passado = get_seguro(passado, 'elemento', 'Terra')
+    elemento_presente = get_seguro(presente, 'elemento', 'Água')
+    elemento_futuro = get_seguro(futuro, 'elemento', 'Ar')
+    
+    # Palavras-chave
+    palavra_chave_passado = get_primeira_palavra_chave(passado)
+    palavra_chave_presente = get_primeira_palavra_chave(presente)
+    palavra_chave_futuro = get_primeira_palavra_chave(futuro)
+    
+    # ============================================
+    # CONSTRUÇÃO DA NARRATIVA POÉTICA
+    # ============================================
     texto = f"""
-No **passado**, {passado['nome']} revela um período de {passado['significado'].lower().split('.')[0]}.
+No **passado**, {nome_passado} revela um período de {sig_passado_resumo}.
 
-{passado.get('metafort', 'Esta carta carrega a sabedoria do tempo.')}
+{metafora_passado}
 
-{passado['significado']} Esta não foi uma experiência vazia - {passado.get('sombra', 'cada desafio')} continha uma lição que só agora começa a fazer sentido.
-
----
-
-**Agora, no presente**, {presente['nome']} chega como um convite à {presente['significado'].lower().split('.')[0]}.
-
-{presente.get('metafort', 'Há um aprendizado silencioso acontecendo.')}
-
-{presente['significado']} {presente.get('conselho', 'Confie no tempo do amadurecimento.')} É como se a vida pedisse que você {presente['anima_animus'] if 'anima_animus' in presente else 'encontre seu centro'}.
+{significado_passado} Esta não foi uma experiência vazia - {sombra_passado} continha uma lição que só agora começa a fazer sentido.
 
 ---
 
-**Olhando adiante**, {futuro['nome']} anuncia {futuro['significado'].lower().split('.')[0]}.
+**Agora, no presente**, {nome_presente} chega como um convite à {sig_presente_resumo}.
 
-{futuro.get('metafort', 'Algo novo se anuncia no horizonte.')}
+{metafora_presente}
 
-{futuro['significado']} {futuro.get('conselho', 'Dê o primeiro passo - mesmo pequeno.')} O movimento não apenas revela o caminho: ele constrói o caminho.
+{significado_presente} {conselho_presente} É como se a vida pedisse que você {anima_futuro}.
+
+---
+
+**Olhando adiante**, {nome_futuro} anuncia {sig_futuro_resumo}.
+
+{metafora_futuro}
+
+{significado_futuro} {conselho_futuro} O movimento não apenas revela o caminho: ele constrói o caminho.
 
 ---
 
 💫 **O que esta sequência conta sobre você:**
 
-Sua jornada do **{passado['nome']}** para o **{presente['nome']}** e então para o **{futuro['nome']}** revela um processo de {pergunta if pergunta else 'transformação pessoal'}.
+Sua jornada do **{nome_passado}** para o **{nome_presente}** e então para o **{nome_futuro}** revela um processo de {pergunta if pergunta else 'transformação pessoal'}.
 
-O que antes era {passado['elemento']} - {passado['palavras_chave'].split(',')[0]} - hoje se torna {presente['elemento']} - {presente['palavras_chave'].split(',')[0]} - para enfim alcançar {futuro['elemento']} - {futuro['palavras_chave'].split(',')[0]}.
+O que antes era {elemento_passado} - {palavra_chave_passado} - hoje se torna {elemento_presente} - {palavra_chave_presente} - para enfim alcançar {elemento_futuro} - {palavra_chave_futuro}.
 
 Você não chegou até aqui por acaso. As cartas que suas mãos escolheram são um espelho da sua alma em movimento.
 
