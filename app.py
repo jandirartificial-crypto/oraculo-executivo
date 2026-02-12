@@ -3,10 +3,10 @@ import google.generativeai as genai
 from datetime import datetime
 
 # ============================================
-# CONFIGURAÇÃO INICIAL - MÍNIMA
+# CONFIGURAÇÃO INICIAL - MÍNIMA ABSOLUTA
 # ============================================
 st.set_page_config(
-    page_title="🔮 Baralho Cigano",
+    page_title="Baralho Cigano",
     page_icon="🃏",
     layout="centered"
 )
@@ -16,38 +16,27 @@ try:
     GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=GOOGLE_API_KEY)
 except Exception as e:
-    st.error("🔑 Erro na configuração da API. Verifique sua chave no Streamlit Secrets.")
+    st.error("🔑 Erro na configuração da API.")
     st.stop()
 
 # ============================================
-# CSS MÍNIMO - APENAS O ESSENCIAL
+# CSS - ULTRA MÍNIMO
 # ============================================
 st.markdown("""
     <style>
-        /* Fundo branco limpo */
-        .stApp {
-            background-color: #FFFFFF;
-        }
+        /* Reset total */
+        .stApp { background-color: #FFFFFF; }
+        .block-container { max-width: 600px; padding-top: 1rem; }
         
-        /* Centralizar conteúdo */
-        .block-container {
-            max-width: 800px;
-            padding-top: 2rem;
-        }
-        
-        /* Botão preto minimalista */
+        /* Botão preto */
         .stButton button {
             background: #000000 !important;
             color: white !important;
-            font-weight: 600 !important;
             border: none !important;
             border-radius: 50px !important;
             padding: 10px 30px !important;
             width: 100%;
-        }
-        
-        .stButton button:hover {
-            background: #333333 !important;
+            font-weight: 500;
         }
         
         /* Campo de texto limpo */
@@ -55,11 +44,6 @@ st.markdown("""
             border-radius: 12px !important;
             border: 1px solid #DEE2E6 !important;
             padding: 12px !important;
-        }
-        
-        .stTextInput input:focus {
-            border-color: #000000 !important;
-            box-shadow: 0 0 0 1px #000000 !important;
         }
         
         /* Área de pergunta */
@@ -71,45 +55,38 @@ st.markdown("""
             resize: none;
         }
         
-        .stTextArea textarea:focus {
-            border-color: #000000 !important;
-            box-shadow: none !important;
-        }
-        
-        /* Container centralizado */
-        .centralizado {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            margin: 40px 0;
-        }
-        
-        /* Título minimalista */
-        h1 {
-            color: #000000 !important;
-            font-weight: 700 !important;
-            text-align: center;
-            margin-bottom: 20px !important;
-        }
-        
-        /* Card minimalista para resultado */
-        .resultado {
-            background: #F8F9FA;
-            border-left: 6px solid #000000;
-            padding: 30px;
-            border-radius: 0 16px 16px 0;
-            margin: 40px 0;
-            font-size: 18px;
-            line-height: 1.8;
-            color: #212529;
-        }
-        
-        /* Esconder elementos do Streamlit */
+        /* Esconder tudo que não é necessário */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
+        
+        /* Resultado em 5 linhas poéticas */
+        .resultado {
+            font-size: 20px;
+            line-height: 1.8;
+            color: #000000;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+            border-top: 1px solid #E9ECEF;
+            border-bottom: 1px solid #E9ECEF;
+            margin: 40px 0;
+        }
+        
+        /* Título invisível */
+        h1 {
+            display: none !important;
+        }
+        
+        /* Texto de apoio */
+        .subtitulo {
+            text-align: center;
+            color: #6C757D;
+            font-size: 14px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -278,9 +255,10 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
-# FUNÇÃO DE INTERPRETAÇÃO
+# FUNÇÃO DE INTERPRETAÇÃO - 5 LINHAS POÉTICAS
 # ============================================
 def interpretar_tiragem(cartas, pergunta_usuario):
+    """Gera uma interpretação poética de exatamente 5 linhas"""
     try:
         modelo = genai.GenerativeModel('gemini-pro')
         
@@ -292,87 +270,80 @@ def interpretar_tiragem(cartas, pergunta_usuario):
             significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
             
             cartas_descricao.append(
-                f"{carta_info['posicao']}: {carta['nome']} ({orientacao})\nSignificado: {significado}"
+                f"{carta_info['posicao']}: {carta['nome']} ({orientacao})"
             )
         
-        prompt = f"""Você é um especialista em Baralho Cigano.
+        prompt = f"""Você é um poeta e cartomante especialista em Baralho Cigano.
 
-Pergunta do consulente: {pergunta_usuario if pergunta_usuario else "Consulta geral"}
+Cartas: {cartas_descricao[0]}, {cartas_descricao[1]}, {cartas_descricao[2]}
+Pergunta: {pergunta_usuario if pergunta_usuario else 'a vida'}
 
-Cartas tiradas:
-{chr(10).join(cartas_descricao)}
+Escreva EXATAMENTE 5 linhas poéticas contendo:
+- 1 insight sobre o passado
+- 1 reflexão sobre o presente  
+- 1 movimento de ação para o futuro
+- Use metáforas e imagens poéticas
+- Não mencione os nomes das cartas explicitamente
+- Linguagem acolhedora e sábia
 
-Faça uma interpretação empática, acolhedora e detalhada destas 3 cartas na sequência Passado → Presente → Futuro.
-Conecte os significados entre si e responda diretamente à pergunta do consulente.
-Use linguagem fluida, sem tópicos. Mínimo de 15 linhas."""
+5 LINHAS APENAS:"""
         
         response = modelo.generate_content(prompt)
         
         if response and response.text:
-            return response.text
+            # Limitar a exatamente 5 linhas
+            linhas = response.text.strip().split('\n')[:5]
+            return '\n'.join(linhas)
         else:
-            return gerar_fallback(cartas, pergunta_usuario)
+            return gerar_fallback_poetico(cartas)
             
     except Exception as e:
-        return gerar_fallback(cartas, pergunta_usuario)
+        return gerar_fallback_poetico(cartas)
 
-def gerar_fallback(cartas, pergunta):
-    """Fallback simples quando API falha"""
-    if len(cartas) < 3:
-        return "🔮 Aguarde..."
-    
-    texto = f"""
-No **passado**, {cartas[0]['carta']['nome']} {'(invertida)' if cartas[0]['orientacao'] == 'invertida' else ''} revela: {cartas[0]['carta']['significado_invertido'] if cartas[0]['orientacao'] == 'invertida' else cartas[0]['carta']['significado_normal']}
-
-**Agora, no presente**, {cartas[1]['carta']['nome']} {'(invertida)' if cartas[1]['orientacao'] == 'invertida' else ''} indica: {cartas[1]['carta']['significado_invertido'] if cartas[1]['orientacao'] == 'invertida' else cartas[1]['carta']['significado_normal']}
-
-**Olhando adiante**, {cartas[2]['carta']['nome']} {'(invertida)' if cartas[2]['orientacao'] == 'invertida' else ''} anuncia: {cartas[2]['carta']['significado_invertido'] if cartas[2]['orientacao'] == 'invertida' else cartas[2]['carta']['significado_normal']}
-
-💫 Esta sequência revela um processo de {pergunta if pergunta else 'transformação pessoal'}. Confie no seu caminho.
-"""
-    return texto
+def gerar_fallback_poetico(cartas):
+    """Fallback com 5 linhas poéticas"""
+    fallbacks = [
+        "O que passou teceu silêncios que hoje são raízes.",
+        "No presente, a árvore aprendeu a beber da própria sombra.",
+        "O movimento que esperas começa onde seus pés tocam o chão.",
+        "Não há vento contrário para quem sabe ajustar as velas.",
+        "Confia: o caminho se revela a cada passo dado."
+    ]
+    return '\n'.join(fallbacks)
 
 # ============================================
-# INTERFACE PRINCIPAL - MÍNIMA
+# INTERFACE - MÍNIMA ABSOLUTA
 # ============================================
 def main():
-    st.title("🔮")
-    st.markdown("<div style='text-align: center; margin-bottom: 40px;'><small>Baralho Cigano</small></div>", unsafe_allow_html=True)
+    # Sem título, sem ícone, apenas o fluxo
     
-    # ============================================
-    # INICIALIZAÇÃO DO ESTADO
-    # ============================================
+    # Inicialização do estado
     if 'etapa' not in st.session_state:
-        st.session_state.etapa = 'pergunta'  # pergunta, carta1, carta2, carta3, resultado
+        st.session_state.etapa = 'pergunta'
     if 'pergunta' not in st.session_state:
         st.session_state.pergunta = ""
     if 'cartas' not in st.session_state:
         st.session_state.cartas = []
     if 'resultado' not in st.session_state:
         st.session_state.resultado = None
-    if 'orientacoes' not in st.session_state:
-        st.session_state.orientacoes = {}
     
-    # ============================================
-    # FLUXO DA INTERFACE
-    # ============================================
-    
-    # Container centralizado
+    # Container central
     with st.container():
-        st.markdown('<div class="centralizado">', unsafe_allow_html=True)
         
-        # ETAPA 1: PERGUNTA
+        # ETAPA 1: APENAS PERGUNTA
         if st.session_state.etapa == 'pergunta':
             pergunta = st.text_area(
-                "💭",
+                " ",
                 placeholder="Qual sua pergunta?",
-                height=120,
+                height=100,
                 key="pergunta_input",
                 label_visibility="collapsed"
             )
             
             if pergunta:
                 st.session_state.pergunta = pergunta
+            
+            st.markdown("<br>", unsafe_allow_html=True)
             
             if st.button("Próximo", use_container_width=True):
                 if st.session_state.pergunta:
@@ -381,25 +352,18 @@ def main():
                 else:
                     st.warning("Digite sua pergunta")
         
-        # ETAPA 2: PRIMEIRA CARTA
+        # ETAPA 2: PRIMEIRA CARTA - SEM SELECT
         elif st.session_state.etapa == 'carta1':
-            st.markdown("**1ª Carta - PASSADO**")
+            st.markdown("**1ª carta — passado**")
             
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                carta1 = st.text_input(
-                    "Nome da carta",
-                    placeholder="Ex: O Cavaleiro",
-                    key="carta1_input",
-                    label_visibility="collapsed"
-                )
-            with col2:
-                orientacao1 = st.selectbox(
-                    "",
-                    ["normal", "invertida"],
-                    key="orientacao1",
-                    label_visibility="collapsed"
-                )
+            carta1 = st.text_input(
+                " ",
+                placeholder="Ex: O Cavaleiro",
+                key="carta1_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
             
             if st.button("Próximo", use_container_width=True):
                 if carta1:
@@ -408,7 +372,7 @@ def main():
                         st.session_state.cartas = [{
                             'carta': carta,
                             'id': id_carta,
-                            'orientacao': orientacao1,
+                            'orientacao': 'normal',  # sempre normal
                             'posicao': 'PASSADO'
                         }]
                         st.session_state.etapa = 'carta2'
@@ -418,25 +382,18 @@ def main():
                 else:
                     st.warning("Digite o nome da carta")
         
-        # ETAPA 3: SEGUNDA CARTA
+        # ETAPA 3: SEGUNDA CARTA - SEM SELECT
         elif st.session_state.etapa == 'carta2':
-            st.markdown("**2ª Carta - PRESENTE**")
+            st.markdown("**2ª carta — presente**")
             
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                carta2 = st.text_input(
-                    "Nome da carta",
-                    placeholder="Ex: A Casa",
-                    key="carta2_input",
-                    label_visibility="collapsed"
-                )
-            with col2:
-                orientacao2 = st.selectbox(
-                    "",
-                    ["normal", "invertida"],
-                    key="orientacao2",
-                    label_visibility="collapsed"
-                )
+            carta2 = st.text_input(
+                " ",
+                placeholder="Ex: A Casa",
+                key="carta2_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
             
             if st.button("Próximo", use_container_width=True):
                 if carta2:
@@ -445,7 +402,7 @@ def main():
                         st.session_state.cartas.append({
                             'carta': carta,
                             'id': id_carta,
-                            'orientacao': orientacao2,
+                            'orientacao': 'normal',  # sempre normal
                             'posicao': 'PRESENTE'
                         })
                         st.session_state.etapa = 'carta3'
@@ -455,44 +412,37 @@ def main():
                 else:
                     st.warning("Digite o nome da carta")
         
-        # ETAPA 4: TERCEIRA CARTA
+        # ETAPA 4: TERCEIRA CARTA - SEM SELECT
         elif st.session_state.etapa == 'carta3':
-            st.markdown("**3ª Carta - FUTURO**")
+            st.markdown("**3ª carta — futuro**")
             
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                carta3 = st.text_input(
-                    "Nome da carta",
-                    placeholder="Ex: O Sol",
-                    key="carta3_input",
-                    label_visibility="collapsed"
-                )
-            with col2:
-                orientacao3 = st.selectbox(
-                    "",
-                    ["normal", "invertida"],
-                    key="orientacao3",
-                    label_visibility="collapsed"
-                )
+            carta3 = st.text_input(
+                " ",
+                placeholder="Ex: O Sol",
+                key="carta3_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("← Voltar", use_container_width=True):
+                if st.button("←", use_container_width=True):
                     st.session_state.etapa = 'carta2'
                     st.rerun()
             with col2:
-                if st.button("🔮 Interpretar", use_container_width=True, type="primary"):
+                if st.button("Interpretar", use_container_width=True, type="primary"):
                     if carta3:
                         valida, id_carta, carta = validar_carta(carta3)
                         if valida:
                             st.session_state.cartas.append({
                                 'carta': carta,
                                 'id': id_carta,
-                                'orientacao': orientacao3,
+                                'orientacao': 'normal',  # sempre normal
                                 'posicao': 'FUTURO'
                             })
                             
-                            with st.spinner("🔮 Interpretando..."):
+                            with st.spinner("..."):
                                 resultado = interpretar_tiragem(
                                     st.session_state.cartas,
                                     st.session_state.pergunta
@@ -505,18 +455,18 @@ def main():
                     else:
                         st.warning("Digite o nome da carta")
         
-        # ETAPA 5: RESULTADO
+        # ETAPA 5: RESULTADO - 5 LINHAS POÉTICAS
         elif st.session_state.etapa == 'resultado':
             if st.session_state.resultado:
                 st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
             
-            if st.button("🔄 Nova Consulta", use_container_width=True):
-                for key in ['etapa', 'pergunta', 'cartas', 'resultado', 'orientacoes']:
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("Nova consulta", use_container_width=True):
+                for key in ['etapa', 'pergunta', 'cartas', 'resultado']:
                     if key in st.session_state:
                         del st.session_state[key]
                 st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
