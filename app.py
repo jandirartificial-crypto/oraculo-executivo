@@ -88,11 +88,11 @@ st.markdown("""
         }
         
         .resultado h2 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 600;
             color: #000000;
-            margin-top: 30px;
-            margin-bottom: 15px;
+            margin-top: 40px;
+            margin-bottom: 20px;
         }
         
         .resultado h3 {
@@ -111,6 +111,14 @@ st.markdown("""
             margin: 30px 0;
             border: none;
             border-top: 2px solid #DEE2E6;
+        }
+        
+        .resultado strong {
+            color: #000000;
+        }
+        
+        .resultado em {
+            color: #495057;
         }
         
         /* Título principal */
@@ -315,80 +323,89 @@ def interpretar_tiragem_afrodite(cartas, pergunta_usuario):
         ]
         
         # Preparar dados das cartas com suas posições
-        cartas_descricao = []
+        cartas_completo = []
         for i, carta_info in enumerate(cartas):
             carta = carta_info['carta']
             orientacao = carta_info['orientacao']
-            significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
             
+            cartas_completo.append({
+                'posicao': i+1,
+                'nome': carta['nome'],
+                'orientacao': orientacao,
+                'significado': carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
+            })
+        
+        # Criar descrição detalhada para o prompt
+        cartas_descricao = []
+        for c in cartas_completo:
             cartas_descricao.append(
-                f"{i+1}. {posicoes[i]}: {carta['nome']} ({orientacao})"
+                f"{c['posicao']}. {posicoes[c['posicao']-1]}: {c['nome']} ({c['orientacao']})"
             )
         
-        # Criar lista detalhada para o prompt
-        cartas_detalhadas = "\n".join(cartas_descricao)
+        cartas_texto = "\n".join(cartas_descricao)
         
+        # Prompt com o estilo EXATO da resposta aprovada
         prompt = f"""
 Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Sua missão é oferecer um conselho profundo, humanizado e prático para o consulente, baseado na tiragem de Afrodite (7 cartas para análise de relacionamento).
 
-## A PERGUNTA DO CONSULENTE:
-{pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
+## CONTEXTO DA CONSULTA:
+Pergunta do consulente: {pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
 
 ## AS CARTAS TIRADAS:
-{cartas_detalhadas}
+{cartas_texto}
 
-## INSTRUÇÕES PARA A RESPOSTA:
+## INSTRUÇÕES CRÍTICAS - SIGA EXATAMENTE ESTE ESTILO:
 
-Escreva uma resposta no formato de um **LIVRO**, com títulos principais que organizam o texto em seções. A linguagem deve ser acolhedora, direta e profunda, como um mentor que fala com clareza e sabedoria.
+Escreva uma resposta com a seguinte estrutura e tom. Use a resposta abaixo como REFERÊNCIA DE ESTILO - deve ser igual em profundidade, tom acolhedor e estrutura.
 
 ### ESTRUTURA OBRIGATÓRIA:
 
-# 🔮 O LIVRO DA SUA RELAÇÃO
-*Um subtítulo acolhedor*
+## CARTA AO CONSULENTE
+(Um parágrafo acolhedor que contextualiza a dor/pergunta do consulente, validando sua jornada. Ex: "Você chegou até aqui carregando uma pergunta que pesa. Relacionamento em crise, intimidade ausente, cobranças constantes...")
 
-## ✉️ CARTA AO CONSULENTE
-(Um parágrafo de abertura acolhendo a pessoa e validando sua jornada)
+## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
+(Interpretação das cartas 1, 2 e 3 - UMA A DUAS CARTAS)
 
-## 🃏 AS SETE CARTAS QUE REVELAM SUA HISTÓRIA
-(Apresente as posições da tiragem de Afrodite em formato de tabela ou lista clara)
+Para CADA carta:
+**Carta X – [Nome]: [Posição]**
+[2-3 parágrafos interpretando a carta, sempre terminando com "O que isso significa na prática:" e uma frase direta sobre como isso se aplica à vida do consulente.]
 
-## 💭 O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
-(Interpretação das cartas 1, 2 e 3 - focando em pensamentos, sentimentos e desejos do consulente)
+## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
+(Interpretação das cartas 4, 5 e 6 - mesma estrutura acima)
 
-## 🐍 O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
-(Interpretação das cartas 4, 5 e 6 - focando nos pensamentos, sentimentos e desejos da companheira)
+## PARA ONDE TUDO ISSO ESTÁ LEVANDO
+(Interpretação da carta 7, com "O que isso significa na prática:")
 
-## ⚓ PARA ONDE TUDO ISSO ESTÁ LEVANDO
-(Interpretação da carta 7 - o desfecho natural se nada mudar)
+## O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
+(Análise das interações entre as cartas, com frases como "Seu Coração (amor) encontra as Estrelas dela (esperança)." Mostre o que está em sincronia e o que está em desencontro.)
 
-## 🔗 O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
-(Análise das interações entre as cartas - o que elas revelam quando conversam entre si)
+## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
+(3-5 fatos científicos diretos, cada um com um parágrafo curto. Use "Sobre [tema]:" para introduzir cada um.)
 
-## 🧠 O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
-(3-4 fatos científicos diretos relacionados à situação, sem explicações longas)
+## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
+(Estoicismo, Budismo, Sikhismo, Existencialismo - um parágrafo para cada escola, aplicado diretamente à situação do consulente. Use o nome da escola como subtítulo.)
 
-## 🏛️ O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
-(Estoicismo, Budismo, Existencialismo - um parágrafo para cada, aplicado diretamente ao caso)
+## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
+(3-5 ilusões comuns, cada uma com o formato: "Ilusão [número]: [Frase entre aspas]" seguido de um parágrafo curto desmontando a ilusão.)
 
-## 💔 AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
-(3-4 crenças limitantes ou ilusões comuns em relacionamentos, desmontadas com clareza)
+## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
+(7-10 ações práticas, numeradas, cada uma com um parágrafo explicativo. As ações devem ser específicas e imediatas.)
 
-## ✅ O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
-(7-10 ações práticas, específicas e imediatas)
-
-## 🌅 PALAVRAS FINAIS
-(Um encerramento poético e empoderador)
+## PALAVRAS FINAIS
+(Um encerramento poético e empoderador de 3-4 parágrafos, retomando as cartas e oferecendo esperança e direção. Incluir "Nota para o consulente" no final.)
 
 ### DIRETRIZES DE TOM:
 
-- Use linguagem acolhedora, mas direta - como um mentor que não esconde a verdade.
-- Foque no presente e futuro, usando o passado apenas como referência para aprendizado.
-- As cartas devem ser interpretadas pelo aspecto comportamental, de pensamentos, sentimentos e energia.
-- Inclua ciência (neurociência, psicologia) como fatos pontuais, não como aulas.
-- Inclua filosofia (estoicismo, budismo, existencialismo) aplicada diretamente à situação.
-- Desmonte ilusões que o consulente pode estar alimentando.
-- Termine com ações práticas e um acolhimento final.
-- O texto deve ter qualidade de livro, podendo ser transformado em PDF.
+- Use linguagem profundamente humana e acolhedora - como se estivesse sentado à frente do consulente.
+- As interpretações devem ser ricas, não apenas o significado da carta, mas "o que isso significa na prática".
+- Conecte TUDO à pergunta e situação específica do consulente.
+- Seja direto, mas nunca cruel. A verdade pode doer, mas deve vir com acolhimento.
+- Use frases como "O que isso significa na prática:" para trazer a interpretação para o terreno da vida real.
+- O texto deve ter QUALIDADE DE LIVRO - pode ser transformado em PDF e entregue ao consulente.
+- NÃO seja acadêmico demais - a ciência e filosofia devem ser pontuais e aplicadas.
+- Termine sempre com uma mensagem de empoderamento: a escolha é do consulente.
+
+Agora, escreva a resposta completa seguindo exatamente esta estrutura e tom.
 """
         
         response = modelo.generate_content(prompt)
@@ -411,26 +428,13 @@ def gerar_conselho_fallback_afrodite(cartas, pergunta):
     nomes = [carta_info['carta']['nome'] for carta_info in cartas]
     
     conselho = f"""
-# 🔮 O LIVRO DA SUA RELAÇÃO
-*Um mergulho profundo no que suas cartas revelam*
-
-## ✉️ CARTA AO CONSULENTE
+## CARTA AO CONSULENTE
 
 Prezado, a pergunta que você traz é sobre amor, sobre conexão, sobre o que ainda existe entre duas pessoas que um dia se escolheram. Não estamos diante de uma simples briga de casal – estamos diante de um relacionamento que adoeceu e precisa de diagnóstico antes do tratamento. Nas próximas páginas, você encontrará não apenas o significado das cartas, mas um mapa para entender o que realmente está acontecendo – e o que você pode fazer a respeito.
 
-## 🃏 AS SETE CARTAS QUE REVELAM SUA HISTÓRIA
+Leia com calma. Algumas verdades vão doer. Mas a dor que cura é diferente da dor que paralisa.
 
-| Carta | Posição | Nome |
-|-------|---------|------|
-| 1 | Pensamentos e Intenções do consulente | {nomes[0]} |
-| 2 | Sentimentos do consulente pela companheira | {nomes[1]} |
-| 3 | Atração sexual, desejos e libido do consulente | {nomes[2]} |
-| 4 | Pensamentos e Intenções da companheira | {nomes[3]} |
-| 5 | Sentimentos da companheira pelo consulente | {nomes[4]} |
-| 6 | Atração sexual, desejos e libido dela | {nomes[5]} |
-| 7 | O desfecho da relação | {nomes[6]} |
-
-## 💭 O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
+## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
 
 **Carta 1 – {nomes[0]}: Seus pensamentos e intenções**
 Esta carta revela o estado da sua mente neste momento. Seus pensamentos estão acelerados ou tranquilos? Direcionados para ação ou para reflexão? Observe o que esta carta diz sobre como você está processando a situação.
@@ -441,7 +445,7 @@ Aqui está a verdade do seu coração. O que você realmente sente por ela, para
 **Carta 3 – {nomes[2]}: Seu desejo sexual por ela**
 O desejo fala de atração, de libido, de vontade de se aproximar fisicamente. Esta carta mostra se esse canal ainda está aberto ou se ele foi fechado pela rotina e pelos conflitos.
 
-## 🐍 O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
+## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
 
 **Carta 4 – {nomes[3]}: Pensamentos e intenções dela**
 A mente dela pode estar clara ou confusa, aberta ou defensiva. Esta carta revela como ela está processando a relação internamente.
@@ -452,56 +456,68 @@ Apesar das aparências, o que ela realmente sente? Esta carta mostra se o amor a
 **Carta 6 – {nomes[5]}: Desejo sexual dela por você**
 O desejo feminino é complexo e muitas vezes reativo à segurança emocional. Esta carta indica se ela ainda sente atração ou se esse canal foi temporariamente interrompido.
 
-## ⚓ PARA ONDE TUDO ISSO ESTÁ LEVANDO
+## PARA ONDE TUDO ISSO ESTÁ LEVANDO
 
 **Carta 7 – {nomes[6]}: O desfecho**
 Esta carta não é uma sentença, mas uma tendência. Mostra para onde a relação está caminhando SE nada mudar. É um aviso, não um destino.
 
-## 🔗 O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
+## O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
 
 Observe a dança entre o que você sente e o que ela sente, entre o que você deseja e o que ela deseja. Existe sincronia ou assincronia? Vocês estão no mesmo comprimento de onda ou em frequências opostas?
 
-## 🧠 O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
+## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
 
-- **Estresse crônico**: Casais em conflito constante têm níveis elevados de cortisol, o que afeta a comunicação e o desejo.
-- **Desejo feminino**: Estudos mostram que a atração sexual na mulher está diretamente ligada à sensação de segurança emocional.
-- **Comunicação**: O cérebro processa críticas como ameaça física, ativando as mesmas áreas de defesa.
+- **Sobre o estresse crônico**: Casais em conflito constante têm níveis elevados de cortisol, o que afeta a comunicação e o desejo.
+- **Sobre o desejo feminino**: Estudos mostram que a atração sexual na mulher está diretamente ligada à sensação de segurança emocional.
+- **Sobre a comunicação**: O cérebro processa críticas como ameaça física, ativando as mesmas áreas de defesa.
 
-## 🏛️ O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
+## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
 
 **Estoicismo**: Foque no que depende de você – suas ações, suas escolhas, sua forma de reagir. O resto, inclusive os sentimentos dela, não está sob seu controle.
 
 **Budismo**: Tudo é impermanente. Esta crise vai passar. A questão é o que restará depois. O apego a como as coisas "deveriam ser" é a raiz do sofrimento.
 
+**Sikhismo**: Aja com excelência, mas sem se apegar ao resultado. Você pode dar o melhor de si para reconstruir a relação, mas sem se prender ao resultado.
+
 **Existencialismo**: Você é livre para escolher. As cartas mostram tendências, não destinos. A responsabilidade pela decisão é sua.
 
-## 💔 AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
+## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
 
-1. **"Se eu explicar direito, ela vai entender."** Não, não vai. Quando alguém está na defensiva, explicações soam como justificativas.
+1. **"Se eu explicar direito, ela vai entender."** Não, não vai. Quando alguém está na defensiva, explicações soam como justificativas, não como diálogo.
 
-2. **"Se ela me amasse, me desejaria."** Amor e desejo são circuitos diferentes. Ela pode amar e ainda assim não desejar agora.
+2. **"Se ela me amasse, me desejaria."** Não é assim que funciona. Amor e desejo são circuitos diferentes no cérebro.
 
-3. **"Preciso resolver isso rápido."** Relações desgastadas por anos não se curam em dias.
+3. **"Preciso resolver isso rápido."** Não, não precisa. Relações desgastadas por anos não se curam em dias.
 
 4. **"O problema é só [circunstância externa]."** As circunstâncias agravam, mas raramente são a causa raiz.
 
-## ✅ O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
+## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
 
-1. **Desacelere**: Estabeleça 30 dias sem conversas pesadas sobre a relação.
+1. **Desacelere**: Estabeleça um período de 30 dias sem conversas pesadas sobre a relação.
 2. **Crie segurança**: Consistência, previsibilidade e escuta ativa.
-3. **Use comunicação não-violenta**: "Quando você... eu sinto... porque preciso... você topa...?"
-4. **Rituais mínimos**: 10 minutos por dia lado a lado, sem obrigação de conversar.
-5. **Cuide de si**: Sua energia e autoestima afetam diretamente a relação.
-6. **Observe sem reagir**: Apenas note os padrões dela sem tentar corrigir.
+3. **Mude a forma de se comunicar**: Use a estrutura "Quando você... eu sinto... porque preciso... você topa...?"
+4. **Crie rituais mínimos de conexão**: 10 minutos por dia lado a lado, sem obrigação de conversar.
+5. **Respeite o tempo dela, mas também o seu**: Observe se ela está se movendo em sua direção.
+6. **Cuide de você primeiro**: Sua energia e autoestima afetam diretamente a relação.
 7. **Estabeleça um marco**: 60 dias para reavaliar se houve mudança.
 
-## 🌅 PALAVRAS FINAIS
+## PALAVRAS FINAIS
 
-O livro que você acabou de ler não é um oráculo – é um espelho. As cartas não criaram sua realidade, apenas a revelaram. O que você escolher fazer com essa informação é com você. Mas saiba que, tendo chegado até aqui, você já deu o primeiro passo: o da coragem de olhar para a verdade.
+O livro que você acabou de ler não é um oráculo – é um espelho. As cartas não criaram sua realidade, apenas a revelaram.
 
-Com respeito pela sua história,
+Você ainda sente. Ela ainda tem esperança. Isso é mais do que muitos casais têm quando chegam onde vocês chegaram.
+
+Mas amor sem ação é só sentimento. Esperança sem mudança é só ilusão.
+
+A Âncora no final não é uma sentença – é uma escolha. Você pode continuar parado, imóvel, pesado. Ou pode usar o peso dela para se estabilizar enquanto decide para onde navegar.
+
+O que você escolher será certo. Não porque as cartas disseram, mas porque **você** escolheu.
+
+Com respeito pela sua história e pela coragem de buscar respostas,
 
 *Seu mentor.*
+
+📌 **Nota para o consulente:** Este texto é seu. Guarde, releia, compartilhe com quem precisa. As respostas que você busca já estão dentro de você – as cartas só ajudaram a organizá-las.
 """
     return conselho
 
