@@ -1,9 +1,11 @@
 import streamlit as st
 import google.generativeai as genai
 from datetime import datetime
+import json
+import re
 
 # ============================================
-# CONFIGURAÇÃO INICIAL - MÍNIMA ABSOLUTA
+# CONFIGURAÇÃO INICIAL
 # ============================================
 st.set_page_config(
     page_title="Baralho Cigano",
@@ -20,7 +22,7 @@ except Exception as e:
     st.stop()
 
 # ============================================
-# CSS - AJUSTADO PARA TEXTOS LONGOS
+# CSS - COM ESTILO PARA PAGINAÇÃO
 # ============================================
 st.markdown("""
     <style>
@@ -80,7 +82,7 @@ st.markdown("""
             font-size: 28px;
             font-weight: 700;
             color: #000000;
-            margin-top: 40px;
+            margin-top: 0;
             margin-bottom: 20px;
             text-align: left;
             border-bottom: 2px solid #000000;
@@ -91,7 +93,7 @@ st.markdown("""
             font-size: 24px;
             font-weight: 600;
             color: #000000;
-            margin-top: 40px;
+            margin-top: 0;
             margin-bottom: 20px;
         }
         
@@ -99,7 +101,7 @@ st.markdown("""
             font-size: 20px;
             font-weight: 600;
             color: #000000;
-            margin-top: 25px;
+            margin-top: 0;
             margin-bottom: 10px;
         }
         
@@ -107,18 +109,22 @@ st.markdown("""
             margin-bottom: 20px;
         }
         
-        .resultado hr {
-            margin: 30px 0;
-            border: none;
-            border-top: 2px solid #DEE2E6;
+        /* Paginação */
+        .pagination-info {
+            text-align: center;
+            color: #6C757D;
+            font-size: 14px;
+            margin: 20px 0;
+            padding: 10px;
+            border-top: 1px solid #DEE2E6;
+            border-bottom: 1px solid #DEE2E6;
         }
         
-        .resultado strong {
-            color: #000000;
-        }
-        
-        .resultado em {
-            color: #495057;
+        /* Botões de navegação */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
         }
         
         /* Título principal */
@@ -304,6 +310,33 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
+# FUNÇÃO PARA DIVIDIR RESPOSTA EM SEÇÕES
+# ============================================
+def dividir_resposta_em_secoes(texto_completo):
+    """
+    Divide a resposta completa em seções baseadas nos títulos ##
+    """
+    if not texto_completo:
+        return []
+    
+    # Padrão para encontrar títulos ##
+    padrao = r'(## .+?)(?=## |\Z)'
+    matches = re.findall(padrao, texto_completo, re.DOTALL)
+    
+    if not matches:
+        # Se não encontrar seções, retorna o texto inteiro como uma única seção
+        return [{"titulo": "Leitura Completa", "conteudo": texto_completo}]
+    
+    secoes = []
+    for match in matches:
+        linhas = match.strip().split('\n', 1)
+        titulo = linhas[0].replace('##', '').strip()
+        conteudo = linhas[1] if len(linhas) > 1 else ""
+        secoes.append({"titulo": titulo, "conteudo": conteudo})
+    
+    return secoes
+
+# ============================================
 # FUNÇÃO DE INTERPRETAÇÃO - MÉTODO AFRODITE (7 CARTAS)
 # ============================================
 def interpretar_tiragem_afrodite(cartas, pergunta_usuario):
@@ -361,49 +394,46 @@ Escreva uma resposta com a seguinte estrutura e tom. Use a resposta abaixo como 
 ### ESTRUTURA OBRIGATÓRIA:
 
 ## CARTA AO CONSULENTE
-(Um parágrafo acolhedor que contextualiza a dor/pergunta do consulente, validando sua jornada. Ex: "Você chegou até aqui carregando uma pergunta que pesa. Relacionamento em crise, intimidade ausente, cobranças constantes...")
+(Um parágrafo acolhedor que contextualiza a dor/pergunta do consulente, validando sua jornada.)
 
 ## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
-(Interpretação das cartas 1, 2 e 3 - UMA A DUAS CARTAS)
-
-Para CADA carta:
-**Carta X – [Nome]: [Posição]**
-[2-3 parágrafos interpretando a carta, sempre terminando com "O que isso significa na prática:" e uma frase direta sobre como isso se aplica à vida do consulente.]
+(Interpretação das cartas 1, 2 e 3. Para CADA carta: **Carta X – [Nome]**: [2-3 parágrafos interpretando a carta, sempre terminando com "O que isso significa na prática:" e uma frase direta.])
 
 ## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
-(Interpretação das cartas 4, 5 e 6 - mesma estrutura acima)
+(Interpretação das cartas 4, 5 e 6 - mesma estrutura acima.)
 
 ## PARA ONDE TUDO ISSO ESTÁ LEVANDO
 (Interpretação da carta 7, com "O que isso significa na prática:")
 
 ## O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
-(Análise das interações entre as cartas, com frases como "Seu Coração (amor) encontra as Estrelas dela (esperança)." Mostre o que está em sincronia e o que está em desencontro.)
+(Análise das interações entre as cartas, com frases como "Seu Coração (amor) encontra as Estrelas dela (esperança)." Mostre o que está em sincronia e o que está em desencontro. Pelo menos 4 parágrafos.)
 
 ## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
-(3-5 fatos científicos diretos, cada um com um parágrafo curto. Use "Sobre [tema]:" para introduzir cada um.)
+(4-5 fatos científicos diretos, cada um com um parágrafo curto. Use "Sobre [tema]:" para introduzir cada um.)
 
 ## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
 (Estoicismo, Budismo, Sikhismo, Existencialismo - um parágrafo para cada escola, aplicado diretamente à situação do consulente. Use o nome da escola como subtítulo.)
 
 ## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
-(3-5 ilusões comuns, cada uma com o formato: "Ilusão [número]: [Frase entre aspas]" seguido de um parágrafo curto desmontando a ilusão.)
+(4-5 ilusões comuns, cada uma com o formato: "**Ilusão [número]:** [Frase entre aspas]" seguido de um parágrafo curto desmontando a ilusão.)
 
 ## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
-(7-10 ações práticas, numeradas, cada uma com um parágrafo explicativo. As ações devem ser específicas e imediatas.)
+(8-10 ações práticas, numeradas, cada uma com um parágrafo explicativo. As ações devem ser específicas e imediatas.)
 
 ## PALAVRAS FINAIS
 (Um encerramento poético e empoderador de 3-4 parágrafos, retomando as cartas e oferecendo esperança e direção. Incluir "Nota para o consulente" no final.)
 
 ### DIRETRIZES DE TOM:
 
-- Use linguagem profundamente humana e acolhedora - como se estivesse sentado à frente do consulente.
-- As interpretações devem ser ricas, não apenas o significado da carta, mas "o que isso significa na prática".
+- Use linguagem profundamente humana e acolhedora.
+- As interpretações devem ser ricas, com pelo menos 3-4 frases por carta.
 - Conecte TUDO à pergunta e situação específica do consulente.
-- Seja direto, mas nunca cruel. A verdade pode doer, mas deve vir com acolhimento.
+- Seja direto, mas nunca cruel.
 - Use frases como "O que isso significa na prática:" para trazer a interpretação para o terreno da vida real.
-- O texto deve ter QUALIDADE DE LIVRO - pode ser transformado em PDF e entregue ao consulente.
+- O texto deve ter QUALIDADE DE LIVRO - pode ser transformado em PDF.
 - NÃO seja acadêmico demais - a ciência e filosofia devem ser pontuais e aplicadas.
-- Termine sempre com uma mensagem de empoderamento: a escolha é do consulente.
+- Termine sempre com uma mensagem de empoderamento.
+- **A resposta deve ser LONGAMENTE DETALHADA, com pelo menos 4000 palavras. Não economize na profundidade.**
 
 Agora, escreva a resposta completa seguindo exatamente esta estrutura e tom.
 """
@@ -470,6 +500,7 @@ Observe a dança entre o que você sente e o que ela sente, entre o que você de
 - **Sobre o estresse crônico**: Casais em conflito constante têm níveis elevados de cortisol, o que afeta a comunicação e o desejo.
 - **Sobre o desejo feminino**: Estudos mostram que a atração sexual na mulher está diretamente ligada à sensação de segurança emocional.
 - **Sobre a comunicação**: O cérebro processa críticas como ameaça física, ativando as mesmas áreas de defesa.
+- **Sobre a esperança**: A expectativa de melhora ativa os mesmos circuitos de recompensa que a melhora real.
 
 ## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
 
@@ -493,12 +524,18 @@ Observe a dança entre o que você sente e o que ela sente, entre o que você de
 
 ## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
 
-1. **Desacelere**: Estabeleça um período de 30 dias sem conversas pesadas sobre a relação.
-2. **Crie segurança**: Consistência, previsibilidade e escuta ativa.
+1. **Desacelere**: Estabeleça um período de 30 dias sem conversas pesadas sobre a relação. Apenas observe, acolha, esteja presente.
+
+2. **Crie segurança**: Consistência, previsibilidade e escuta ativa. Segurança se cria com ações, não com palavras.
+
 3. **Mude a forma de se comunicar**: Use a estrutura "Quando você... eu sinto... porque preciso... você topa...?"
+
 4. **Crie rituais mínimos de conexão**: 10 minutos por dia lado a lado, sem obrigação de conversar.
-5. **Respeite o tempo dela, mas também o seu**: Observe se ela está se movendo em sua direção.
-6. **Cuide de você primeiro**: Sua energia e autoestima afetam diretamente a relação.
+
+5. **Respeite o tempo dela, mas também o seu**: Observe se ela está se movendo em sua direção. Se depois de 60 dias não houver mudança, você terá sua resposta.
+
+6. **Cuide de você primeiro**: Sua energia e autoestima afetam diretamente a relação. Busque fontes de renda, atividades que te fortaleçam, rede de apoio.
+
 7. **Estabeleça um marco**: 60 dias para reavaliar se houve mudança.
 
 ## PALAVRAS FINAIS
@@ -522,7 +559,7 @@ Com respeito pela sua história e pela coragem de buscar respostas,
     return conselho
 
 # ============================================
-# INTERFACE - MÉTODO AFRODITE (7 CARTAS)
+# INTERFACE - MÉTODO AFRODITE COM PAGINAÇÃO
 # ============================================
 def main():
     # Título
@@ -536,8 +573,12 @@ def main():
         st.session_state.pergunta = ""
     if 'cartas' not in st.session_state:
         st.session_state.cartas = []
-    if 'resultado' not in st.session_state:
-        st.session_state.resultado = None
+    if 'resultado_completo' not in st.session_state:
+        st.session_state.resultado_completo = None
+    if 'secoes' not in st.session_state:
+        st.session_state.secoes = []
+    if 'pagina_atual' not in st.session_state:
+        st.session_state.pagina_atual = 0
     if 'carta_atual' not in st.session_state:
         st.session_state.carta_atual = 1
     
@@ -663,7 +704,11 @@ def main():
                                         st.session_state.cartas,
                                         st.session_state.pergunta
                                     )
-                                    st.session_state.resultado = resultado
+                                    
+                                    # Armazenar resultado completo e dividir em seções
+                                    st.session_state.resultado_completo = resultado
+                                    st.session_state.secoes = dividir_resposta_em_secoes(resultado)
+                                    st.session_state.pagina_atual = 0
                                     st.session_state.etapa = 'resultado'
                                     st.rerun()
                             else:
@@ -671,18 +716,47 @@ def main():
                         else:
                             st.warning("Digite o nome da carta")
         
-        # ETAPA 9: RESULTADO
+        # ETAPA 9: RESULTADO COM PAGINAÇÃO
         elif st.session_state.etapa == 'resultado':
-            if st.session_state.resultado:
-                st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("Nova consulta", use_container_width=True):
-                for key in ['etapa', 'pergunta', 'cartas', 'resultado', 'carta_atual']:
-                    if key in st.session_state:
-                        del st.session_state[key]
-                st.rerun()
+            if st.session_state.secoes:
+                secao_atual = st.session_state.secoes[st.session_state.pagina_atual]
+                
+                # Mostrar título da seção
+                st.markdown(f"<h2 style='text-align: center;'>{secao_atual['titulo']}</h2>", unsafe_allow_html=True)
+                
+                # Mostrar conteúdo da seção
+                st.markdown(f'<div class="resultado">{secao_atual["conteudo"]}</div>', unsafe_allow_html=True)
+                
+                # Informação de paginação
+                st.markdown(f"""
+                <div class="pagination-info">
+                    Seção {st.session_state.pagina_atual + 1} de {len(st.session_state.secoes)}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Botões de navegação
+                col1, col2, col3 = st.columns([1, 1, 1])
+                
+                with col1:
+                    if st.session_state.pagina_atual > 0:
+                        if st.button("← Anterior", use_container_width=True):
+                            st.session_state.pagina_atual -= 1
+                            st.rerun()
+                
+                with col2:
+                    if st.button("Nova consulta", use_container_width=True):
+                        for key in ['etapa', 'pergunta', 'cartas', 'resultado_completo', 'secoes', 'pagina_atual', 'carta_atual']:
+                            if key in st.session_state:
+                                del st.session_state[key]
+                        st.rerun()
+                
+                with col3:
+                    if st.session_state.pagina_atual < len(st.session_state.secoes) - 1:
+                        if st.button("Próximo →", use_container_width=True):
+                            st.session_state.pagina_atual += 1
+                            st.rerun()
+            else:
+                st.markdown('<div class="resultado">Carregando interpretação...</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
