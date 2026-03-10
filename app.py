@@ -113,9 +113,11 @@ st.markdown("""
             border-top: 2px solid #DEE2E6;
         }
         
-        /* Título invisível */
+        /* Título principal */
         h1 {
-            display: none !important;
+            display: block !important;
+            color: #000000 !important;
+            font-weight: 700 !important;
         }
         
         /* Indicador de progresso para 7 cartas */
@@ -521,4 +523,150 @@ def main():
     if 'resultado' not in st.session_state:
         st.session_state.resultado = None
     if 'carta_atual' not in st.session_state:
-        st.session_state.c
+        st.session_state.carta_atual = 1
+    
+    # Container central
+    with st.container():
+        
+        # ETAPA 1: APENAS PERGUNTA
+        if st.session_state.etapa == 'pergunta':
+            pergunta = st.text_area(
+                " ",
+                placeholder="Qual sua pergunta sobre o relacionamento?",
+                height=100,
+                key="pergunta_input",
+                label_visibility="collapsed"
+            )
+            
+            if pergunta:
+                st.session_state.pergunta = pergunta
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("Começar tiragem", use_container_width=True):
+                if st.session_state.pergunta:
+                    st.session_state.etapa = 'carta1'
+                    st.rerun()
+                else:
+                    st.warning("Digite sua pergunta")
+        
+        # ETAPAS 2 a 8: SETE CARTAS
+        elif st.session_state.etapa.startswith('carta'):
+            carta_num = int(st.session_state.etapa.replace('carta', ''))
+            
+            # Posições das cartas
+            posicoes = [
+                "1ª carta — Pensamentos e Intenções (você)",
+                "2ª carta — Sentimentos (você)",
+                "3ª carta — Desejo sexual (você)",
+                "4ª carta — Pensamentos e Intenções (ela)",
+                "5ª carta — Sentimentos (ela)",
+                "6ª carta — Desejo sexual (ela)",
+                "7ª carta — O desfecho"
+            ]
+            
+            st.markdown(f"**{posicoes[carta_num-1]}**")
+            st.markdown(f"<div class='progresso-cartas'>Carta {carta_num} de 7</div>", unsafe_allow_html=True)
+            
+            carta_input = st.text_input(
+                " ",
+                placeholder="Ex: O Cavaleiro",
+                key=f"carta{carta_num}_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if carta_num > 1:
+                    if st.button("← Voltar", use_container_width=True):
+                        st.session_state.etapa = f'carta{carta_num-1}'
+                        st.rerun()
+            
+            with col2:
+                if carta_num < 7:
+                    if st.button("Próximo", use_container_width=True):
+                        if carta_input:
+                            valida, id_carta, carta = validar_carta(carta_input)
+                            if valida:
+                                # Verificar se já existe carta nesta posição
+                                carta_existente = False
+                                for c in st.session_state.cartas:
+                                    if c.get('posicao_num') == carta_num:
+                                        carta_existente = True
+                                        break
+                                
+                                if not carta_existente:
+                                    # Remover carta antiga se existir
+                                    st.session_state.cartas = [c for c in st.session_state.cartas if c.get('posicao_num') != carta_num]
+                                    
+                                    # Adicionar nova carta
+                                    st.session_state.cartas.append({
+                                        'carta': carta,
+                                        'id': id_carta,
+                                        'orientacao': 'normal',
+                                        'posicao': posicoes[carta_num-1],
+                                        'posicao_num': carta_num
+                                    })
+                                    
+                                    # Ordenar por posição
+                                    st.session_state.cartas.sort(key=lambda x: x['posicao_num'])
+                                    
+                                    st.session_state.etapa = f'carta{carta_num+1}'
+                                    st.rerun()
+                                else:
+                                    st.warning("Esta carta já foi adicionada")
+                            else:
+                                st.error("Carta não encontrada")
+                        else:
+                            st.warning("Digite o nome da carta")
+                
+                else:  # Última carta (7)
+                    if st.button("Finalizar e interpretar", use_container_width=True, type="primary"):
+                        if carta_input:
+                            valida, id_carta, carta = validar_carta(carta_input)
+                            if valida:
+                                # Remover carta antiga se existir
+                                st.session_state.cartas = [c for c in st.session_state.cartas if c.get('posicao_num') != 7]
+                                
+                                # Adicionar última carta
+                                st.session_state.cartas.append({
+                                    'carta': carta,
+                                    'id': id_carta,
+                                    'orientacao': 'normal',
+                                    'posicao': posicoes[6],
+                                    'posicao_num': 7
+                                })
+                                
+                                # Ordenar por posição
+                                st.session_state.cartas.sort(key=lambda x: x['posicao_num'])
+                                
+                                with st.spinner("🔮 Interpretando sua história..."):
+                                    resultado = interpretar_tiragem_afrodite(
+                                        st.session_state.cartas,
+                                        st.session_state.pergunta
+                                    )
+                                    st.session_state.resultado = resultado
+                                    st.session_state.etapa = 'resultado'
+                                    st.rerun()
+                            else:
+                                st.error("Carta não encontrada")
+                        else:
+                            st.warning("Digite o nome da carta")
+        
+        # ETAPA 9: RESULTADO
+        elif st.session_state.etapa == 'resultado':
+            if st.session_state.resultado:
+                st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("Nova consulta", use_container_width=True):
+                for key in ['etapa', 'pergunta', 'cartas', 'resultado', 'carta_atual']:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.rerun()
+
+if __name__ == "__main__":
+    main()
