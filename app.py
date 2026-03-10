@@ -26,7 +26,7 @@ st.markdown("""
     <style>
         /* Reset total */
         .stApp { background-color: #FFFFFF; }
-        .block-container { max-width: 700px; padding-top: 1rem; }
+        .block-container { max-width: 800px; padding-top: 1rem; }
         
         /* Botão preto */
         .stButton button {
@@ -74,60 +74,40 @@ st.markdown("""
             font-family: 'Georgia', serif;
         }
         
-        /* Estilo para o conselho do mentor */
-        .conselho {
-            font-size: 19px;
-            line-height: 1.9;
-            color: #1a1a1a;
-        }
-        
-        .conselho p {
-            margin-bottom: 25px;
-        }
-        
-        .conselho strong {
-            color: #000000;
+        /* Estilo para títulos dentro do resultado */
+        .resultado h1 {
+            display: block;
+            font-size: 28px;
             font-weight: 700;
+            color: #000000;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            text-align: left;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 10px;
         }
         
-        .conselho em {
-            color: #495057;
-            font-style: italic;
+        .resultado h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #000000;
+            margin-top: 30px;
+            margin-bottom: 15px;
         }
         
-        .conselho .forcas {
-            background: #e8f5e9;
-            padding: 20px;
-            border-radius: 16px;
-            margin: 20px 0;
-            border-left: 6px solid #2e7d32;
+        .resultado h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000000;
+            margin-top: 25px;
+            margin-bottom: 10px;
         }
         
-        .conselho .limitacoes {
-            background: #ffebee;
-            padding: 20px;
-            border-radius: 16px;
-            margin: 20px 0;
-            border-left: 6px solid #c62828;
+        .resultado p {
+            margin-bottom: 20px;
         }
         
-        .conselho .acoes {
-            background: #e3f2fd;
-            padding: 20px;
-            border-radius: 16px;
-            margin: 20px 0;
-            border-left: 6px solid #1565c0;
-        }
-        
-        .conselho .caminhos {
-            background: #fff3e0;
-            padding: 20px;
-            border-radius: 16px;
-            margin: 20px 0;
-            border-left: 6px solid #ef6c00;
-        }
-        
-        hr {
+        .resultado hr {
             margin: 30px 0;
             border: none;
             border-top: 2px solid #DEE2E6;
@@ -136,6 +116,15 @@ st.markdown("""
         /* Título invisível */
         h1 {
             display: none !important;
+        }
+        
+        /* Indicador de progresso para 7 cartas */
+        .progresso-cartas {
+            text-align: center;
+            color: #6C757D;
+            font-size: 14px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -305,57 +294,99 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
-# FUNÇÃO DE INTERPRETAÇÃO - FOCO NO CONSELHO DO MENTOR
+# FUNÇÃO DE INTERPRETAÇÃO - MÉTODO AFRODITE (7 CARTAS)
 # ============================================
-def interpretar_tiragem(cartas, pergunta_usuario):
-    """Gera um conselho humanizado e completo baseado nas cartas."""
+def interpretar_tiragem_afrodite(cartas, pergunta_usuario):
+    """Gera uma interpretação profunda para a tiragem de Afrodite (7 cartas)."""
     try:
         modelo = genai.GenerativeModel('gemini-pro')
         
-        # Preparar dados das cartas
+        # Posições da tiragem Afrodite
+        posicoes = [
+            "Pensamentos e Intenções do consulente",
+            "Sentimentos do consulente pela companheira",
+            "Atração sexual, desejos e libido do consulente por ela",
+            "Pensamentos e Intenções da companheira",
+            "Sentimentos da companheira pelo consulente",
+            "Atração sexual, desejos e libido dela por ele",
+            "O desfecho: O que resultará dessa relação"
+        ]
+        
+        # Preparar dados das cartas com suas posições
         cartas_descricao = []
-        for carta_info in cartas:
+        for i, carta_info in enumerate(cartas):
             carta = carta_info['carta']
             orientacao = carta_info['orientacao']
             significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
             
             cartas_descricao.append(
-                f"{carta_info['posicao']}: {carta['nome']} ({orientacao})"
+                f"{i+1}. {posicoes[i]}: {carta['nome']} ({orientacao})"
             )
         
+        # Criar lista detalhada para o prompt
+        cartas_detalhadas = "\n".join(cartas_descricao)
+        
         prompt = f"""
-Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Sua missão é oferecer um conselho profundo, humanizado e prático para o consulente, baseado nas cartas que ele tirou.
+Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Sua missão é oferecer um conselho profundo, humanizado e prático para o consulente, baseado na tiragem de Afrodite (7 cartas para análise de relacionamento).
 
-Cartas: {cartas_descricao[0]}, {cartas_descricao[1]}, {cartas_descricao[2]}
-Pergunta do consulente: {pergunta_usuario if pergunta_usuario else 'a vida'}
+## A PERGUNTA DO CONSULENTE:
+{pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
 
-Escreva um **CONSELHO DO MENTOR** completo seguindo esta estrutura:
+## AS CARTAS TIRADAS:
+{cartas_detalhadas}
 
-1. **Acolhimento inicial** (2-3 frases): Receba o consulente com calor humano, validando sua jornada e sua pergunta.
+## INSTRUÇÕES PARA A RESPOSTA:
 
-2. **O que as cartas revelam sobre você** (3-4 parágrafos):
-   - Suas FORÇAS: quais qualidades, potenciais e recursos internos estão disponíveis para você agora.
-   - Suas LIMITAÇÕES: quais padrões, medos ou bloqueios podem estar dificultando seu caminho (fale com cuidado e sem julgamento).
+Escreva uma resposta no formato de um **LIVRO**, com títulos principais que organizam o texto em seções. A linguagem deve ser acolhedora, direta e profunda, como um mentor que fala com clareza e sabedoria.
 
-3. **Caminhos possíveis** (3-4 parágrafos):
-   - Descreva 2-3 direções que você pode seguir a partir deste momento.
-   - Para cada caminho, aponte o que ele exige de você e o que pode trazer.
-   - Não faça escolhas pelo consulente, apenas ilumine as possibilidades.
+### ESTRUTURA OBRIGATÓRIA:
 
-4. **Ações práticas para agora** (5-7 itens):
-   - Sugestões concretas, acionáveis e imediatas.
-   - Podem ser pequenas mudanças de hábito, exercícios de autoconhecimento, atitudes diárias.
+# 🔮 O LIVRO DA SUA RELAÇÃO
+*Um subtítulo acolhedor*
 
-5. **Encerramento com sabedoria** (3-4 frases):
-   - Uma mensagem final de confiança, esperança e empoderamento.
+## ✉️ CARTA AO CONSULENTE
+(Um parágrafo de abertura acolhendo a pessoa e validando sua jornada)
 
-IMPORTANTE:
-- Use linguagem acolhedora, como se estivesse falando diretamente com o consulente.
-- Conecte TUDO à pergunta que ele fez.
-- Seja específico, evite clichês vazios.
-- Traga exemplos concretos de como ele pode aplicar o conselho na vida real.
-- Lembre-se: você é um mentor, não um adivinho. Seu papel é iluminar, não determinar.
-- Escreva em português fluente e natural.
+## 🃏 AS SETE CARTAS QUE REVELAM SUA HISTÓRIA
+(Apresente as posições da tiragem de Afrodite em formato de tabela ou lista clara)
+
+## 💭 O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
+(Interpretação das cartas 1, 2 e 3 - focando em pensamentos, sentimentos e desejos do consulente)
+
+## 🐍 O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
+(Interpretação das cartas 4, 5 e 6 - focando nos pensamentos, sentimentos e desejos da companheira)
+
+## ⚓ PARA ONDE TUDO ISSO ESTÁ LEVANDO
+(Interpretação da carta 7 - o desfecho natural se nada mudar)
+
+## 🔗 O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
+(Análise das interações entre as cartas - o que elas revelam quando conversam entre si)
+
+## 🧠 O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
+(3-4 fatos científicos diretos relacionados à situação, sem explicações longas)
+
+## 🏛️ O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
+(Estoicismo, Budismo, Existencialismo - um parágrafo para cada, aplicado diretamente ao caso)
+
+## 💔 AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
+(3-4 crenças limitantes ou ilusões comuns em relacionamentos, desmontadas com clareza)
+
+## ✅ O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
+(7-10 ações práticas, específicas e imediatas)
+
+## 🌅 PALAVRAS FINAIS
+(Um encerramento poético e empoderador)
+
+### DIRETRIZES DE TOM:
+
+- Use linguagem acolhedora, mas direta - como um mentor que não esconde a verdade.
+- Foque no presente e futuro, usando o passado apenas como referência para aprendizado.
+- As cartas devem ser interpretadas pelo aspecto comportamental, de pensamentos, sentimentos e energia.
+- Inclua ciência (neurociência, psicologia) como fatos pontuais, não como aulas.
+- Inclua filosofia (estoicismo, budismo, existencialismo) aplicada diretamente à situação.
+- Desmonte ilusões que o consulente pode estar alimentando.
+- Termine com ações práticas e um acolhimento final.
+- O texto deve ter qualidade de livro, podendo ser transformado em PDF.
 """
         
         response = modelo.generate_content(prompt)
@@ -363,60 +394,122 @@ IMPORTANTE:
         if response and response.text:
             return response.text
         else:
-            return gerar_conselho_fallback(cartas, pergunta_usuario)
+            return gerar_conselho_fallback_afrodite(cartas, pergunta_usuario)
             
     except Exception as e:
-        return gerar_conselho_fallback(cartas, pergunta_usuario)
+        return gerar_conselho_fallback_afrodite(cartas, pergunta_usuario)
 
-def gerar_conselho_fallback(cartas, pergunta):
-    """Fallback com conselho humanizado."""
+def gerar_conselho_fallback_afrodite(cartas, pergunta):
+    """Fallback para a tiragem Afrodite."""
+    
+    if len(cartas) < 7:
+        return "Não foi possível gerar a interpretação completa. Por favor, tente novamente."
+    
+    # Extrair nomes das cartas
+    nomes = [carta_info['carta']['nome'] for carta_info in cartas]
     
     conselho = f"""
-Querido(a) consulente,
+# 🔮 O LIVRO DA SUA RELAÇÃO
+*Um mergulho profundo no que suas cartas revelam*
 
-Sinto uma energia muito especial ao redor da sua pergunta. Você está em um momento de busca sincera, e isso já demonstra uma coragem imensa. Quero que saiba que estou aqui para caminhar ao seu lado nesta reflexão, com todo o respeito pela sua história.
+## ✉️ CARTA AO CONSULENTE
 
-**O que as cartas revelam sobre você**
+Prezado, a pergunta que você traz é sobre amor, sobre conexão, sobre o que ainda existe entre duas pessoas que um dia se escolheram. Não estamos diante de uma simples briga de casal – estamos diante de um relacionamento que adoeceu e precisa de diagnóstico antes do tratamento. Nas próximas páginas, você encontrará não apenas o significado das cartas, mas um mapa para entender o que realmente está acontecendo – e o que você pode fazer a respeito.
 
-Suas forças são maiores do que você imagina. Existe em você uma capacidade de se reinventar que talvez ainda não tenha sido completamente acessada. As cartas mostram que você já passou por situações desafiadoras antes e que carrega consigo aprendizados valiosos — mesmo que, às vezes, eles fiquem escondidos sob o cansaço ou a dúvida. Sua intuição é um farol poderoso, mesmo quando as águas estão turvas.
+## 🃏 AS SETE CARTAS QUE REVELAM SUA HISTÓRIA
 
-Ao mesmo tempo, as cartas também apontam para algumas limitações que merecem sua atenção. Talvez exista um padrão de se cobrar demais, de querer respostas imediatas para perguntas que ainda estão amadurecendo. Ou quem sabe um medo de confiar no fluxo da vida, de soltar o controle e permitir que o novo chegue. Não se culpe por isso — essas são camadas de proteção que você construiu ao longo do caminho, e agora podemos olhar para elas com compaixão.
+| Carta | Posição | Nome |
+|-------|---------|------|
+| 1 | Pensamentos e Intenções do consulente | {nomes[0]} |
+| 2 | Sentimentos do consulente pela companheira | {nomes[1]} |
+| 3 | Atração sexual, desejos e libido do consulente | {nomes[2]} |
+| 4 | Pensamentos e Intenções da companheira | {nomes[3]} |
+| 5 | Sentimentos da companheira pelo consulente | {nomes[4]} |
+| 6 | Atração sexual, desejos e libido dela | {nomes[5]} |
+| 7 | O desfecho da relação | {nomes[6]} |
 
-**Caminhos possíveis**
+## 💭 O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
 
-Olhando para o momento que você vive, enxergo pelo menos duas direções que podem se abrir:
+**Carta 1 – {nomes[0]}: Seus pensamentos e intenções**
+Esta carta revela o estado da sua mente neste momento. Seus pensamentos estão acelerados ou tranquilos? Direcionados para ação ou para reflexão? Observe o que esta carta diz sobre como você está processando a situação.
 
-Um caminho é o da **escuta interior mais profunda**. Isso significa desacelerar, criar espaços de silêncio na rotina, observar seus sentimentos sem julgamento. Esse caminho exige paciência, mas pode trazer clarezas que nenhuma resposta externa seria capaz de dar.
+**Carta 2 – {nomes[1]}: Seus sentimentos por ela**
+Aqui está a verdade do seu coração. O que você realmente sente por ela, para além das mágoas e dos desgastes. Esse sentimento é a base sobre a qual qualquer reconstrução pode acontecer.
 
-Outro caminho é o da **ação consciente**. Pequenos movimentos práticos, mesmo imperfeitos, que tiram você do lugar e geram aprendizado real. Esse caminho exige coragem para errar, mas pode trazer descobertas que só acontecem quando a gente se coloca em movimento.
+**Carta 3 – {nomes[2]}: Seu desejo sexual por ela**
+O desejo fala de atração, de libido, de vontade de se aproximar fisicamente. Esta carta mostra se esse canal ainda está aberto ou se ele foi fechado pela rotina e pelos conflitos.
 
-Talvez exista ainda um terceiro caminho, que é justamente **aprender a sustentar a pergunta sem precisar respondê-la agora**. Algumas questões da vida não têm resposta imediata — e tudo bem. Elas nos acompanham, nos transformam, e um dia fazem sentido.
+## 🐍 O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
 
-**Ações práticas para agora**
+**Carta 4 – {nomes[3]}: Pensamentos e intenções dela**
+A mente dela pode estar clara ou confusa, aberta ou defensiva. Esta carta revela como ela está processando a relação internamente.
 
-1. Reserve 10 minutos por dia para escrever livremente sobre o que sente, sem compromisso com "fazer sentido".
-2. Escolha uma pequena ação que você vem adiando e faça hoje, mesmo que imperfeita.
-3. Observe seus diálogos internos: quando você se critica, tente se falar com a mesma gentileza que usaria com um amigo querido.
-4. Conecte-se com a natureza, mesmo que por poucos minutos — sinta o chão, o ar, o presente.
-5. Pergunte-se: "O que eu realmente preciso agora?" e ouça a primeira resposta que vier, sem filtrar.
-6. Se possível, converse com alguém de confiança sobre o que está sentindo — o simples ato de compartilhar já alivia.
-7. Confie mais no seu corpo: ele sente antes da mente entender.
+**Carta 5 – {nomes[4]}: Sentimentos dela por você**
+Apesar das aparências, o que ela realmente sente? Esta carta mostra se o amor ainda existe ou se já foi substituído por indiferença ou ressentimento.
 
-**Para encerrar**
+**Carta 6 – {nomes[5]}: Desejo sexual dela por você**
+O desejo feminino é complexo e muitas vezes reativo à segurança emocional. Esta carta indica se ela ainda sente atração ou se esse canal foi temporariamente interrompido.
 
-Querido(a), lembre-se: você não está sozinho(a) nesta jornada. As perguntas que traz são legítimas, e as respostas virão no tempo certo — não necessariamente no tempo que você espera, mas no tempo que sua alma precisa para amadurecê-las. Confie no processo, confie em você. O caminho se faz ao caminhar, e cada passo, mesmo os mais hesitantes, já é uma conquista.
+## ⚓ PARA ONDE TUDO ISSO ESTÁ LEVANDO
 
-Com todo o carinho e respeito pela sua história,
+**Carta 7 – {nomes[6]}: O desfecho**
+Esta carta não é uma sentença, mas uma tendência. Mostra para onde a relação está caminhando SE nada mudar. É um aviso, não um destino.
 
-Seu mentor.
+## 🔗 O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
+
+Observe a dança entre o que você sente e o que ela sente, entre o que você deseja e o que ela deseja. Existe sincronia ou assincronia? Vocês estão no mesmo comprimento de onda ou em frequências opostas?
+
+## 🧠 O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
+
+- **Estresse crônico**: Casais em conflito constante têm níveis elevados de cortisol, o que afeta a comunicação e o desejo.
+- **Desejo feminino**: Estudos mostram que a atração sexual na mulher está diretamente ligada à sensação de segurança emocional.
+- **Comunicação**: O cérebro processa críticas como ameaça física, ativando as mesmas áreas de defesa.
+
+## 🏛️ O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
+
+**Estoicismo**: Foque no que depende de você – suas ações, suas escolhas, sua forma de reagir. O resto, inclusive os sentimentos dela, não está sob seu controle.
+
+**Budismo**: Tudo é impermanente. Esta crise vai passar. A questão é o que restará depois. O apego a como as coisas "deveriam ser" é a raiz do sofrimento.
+
+**Existencialismo**: Você é livre para escolher. As cartas mostram tendências, não destinos. A responsabilidade pela decisão é sua.
+
+## 💔 AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
+
+1. **"Se eu explicar direito, ela vai entender."** Não, não vai. Quando alguém está na defensiva, explicações soam como justificativas.
+
+2. **"Se ela me amasse, me desejaria."** Amor e desejo são circuitos diferentes. Ela pode amar e ainda assim não desejar agora.
+
+3. **"Preciso resolver isso rápido."** Relações desgastadas por anos não se curam em dias.
+
+4. **"O problema é só [circunstância externa]."** As circunstâncias agravam, mas raramente são a causa raiz.
+
+## ✅ O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
+
+1. **Desacelere**: Estabeleça 30 dias sem conversas pesadas sobre a relação.
+2. **Crie segurança**: Consistência, previsibilidade e escuta ativa.
+3. **Use comunicação não-violenta**: "Quando você... eu sinto... porque preciso... você topa...?"
+4. **Rituais mínimos**: 10 minutos por dia lado a lado, sem obrigação de conversar.
+5. **Cuide de si**: Sua energia e autoestima afetam diretamente a relação.
+6. **Observe sem reagir**: Apenas note os padrões dela sem tentar corrigir.
+7. **Estabeleça um marco**: 60 dias para reavaliar se houve mudança.
+
+## 🌅 PALAVRAS FINAIS
+
+O livro que você acabou de ler não é um oráculo – é um espelho. As cartas não criaram sua realidade, apenas a revelaram. O que você escolher fazer com essa informação é com você. Mas saiba que, tendo chegado até aqui, você já deu o primeiro passo: o da coragem de olhar para a verdade.
+
+Com respeito pela sua história,
+
+*Seu mentor.*
 """
     return conselho
 
 # ============================================
-# INTERFACE - MÍNIMA ABSOLUTA
+# INTERFACE - MÉTODO AFRODITE (7 CARTAS)
 # ============================================
 def main():
-    # Sem título, sem ícone, apenas o fluxo
+    # Título
+    st.markdown("<h1 style='display: block; text-align: center; font-size: 24px; margin-bottom: 10px;'>🔮 BARALHO CIGANO</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6C757D; margin-bottom: 30px;'>Método: Afrodite • 7 cartas para relacionamentos</p>", unsafe_allow_html=True)
     
     # Inicialização do estado
     if 'etapa' not in st.session_state:
@@ -427,147 +520,5 @@ def main():
         st.session_state.cartas = []
     if 'resultado' not in st.session_state:
         st.session_state.resultado = None
-    
-    # Container central
-    with st.container():
-        
-        # ETAPA 1: APENAS PERGUNTA
-        if st.session_state.etapa == 'pergunta':
-            pergunta = st.text_area(
-                " ",
-                placeholder="Qual sua pergunta?",
-                height=100,
-                key="pergunta_input",
-                label_visibility="collapsed"
-            )
-            
-            if pergunta:
-                st.session_state.pergunta = pergunta
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("Próximo", use_container_width=True):
-                if st.session_state.pergunta:
-                    st.session_state.etapa = 'carta1'
-                    st.rerun()
-                else:
-                    st.warning("Digite sua pergunta")
-        
-        # ETAPA 2: PRIMEIRA CARTA - SEM SELECT
-        elif st.session_state.etapa == 'carta1':
-            st.markdown("**1ª carta — passado**")
-            
-            carta1 = st.text_input(
-                " ",
-                placeholder="Ex: O Cavaleiro",
-                key="carta1_input",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("Próximo", use_container_width=True):
-                if carta1:
-                    valida, id_carta, carta = validar_carta(carta1)
-                    if valida:
-                        st.session_state.cartas = [{
-                            'carta': carta,
-                            'id': id_carta,
-                            'orientacao': 'normal',
-                            'posicao': 'PASSADO'
-                        }]
-                        st.session_state.etapa = 'carta2'
-                        st.rerun()
-                    else:
-                        st.error("Carta não encontrada")
-                else:
-                    st.warning("Digite o nome da carta")
-        
-        # ETAPA 3: SEGUNDA CARTA - SEM SELECT
-        elif st.session_state.etapa == 'carta2':
-            st.markdown("**2ª carta — presente**")
-            
-            carta2 = st.text_input(
-                " ",
-                placeholder="Ex: A Casa",
-                key="carta2_input",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("Próximo", use_container_width=True):
-                if carta2:
-                    valida, id_carta, carta = validar_carta(carta2)
-                    if valida:
-                        st.session_state.cartas.append({
-                            'carta': carta,
-                            'id': id_carta,
-                            'orientacao': 'normal',
-                            'posicao': 'PRESENTE'
-                        })
-                        st.session_state.etapa = 'carta3'
-                        st.rerun()
-                    else:
-                        st.error("Carta não encontrada")
-                else:
-                    st.warning("Digite o nome da carta")
-        
-        # ETAPA 4: TERCEIRA CARTA - SEM SELECT
-        elif st.session_state.etapa == 'carta3':
-            st.markdown("**3ª carta — futuro**")
-            
-            carta3 = st.text_input(
-                " ",
-                placeholder="Ex: O Sol",
-                key="carta3_input",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("←", use_container_width=True):
-                    st.session_state.etapa = 'carta2'
-                    st.rerun()
-            with col2:
-                if st.button("Receber conselho", use_container_width=True, type="primary"):
-                    if carta3:
-                        valida, id_carta, carta = validar_carta(carta3)
-                        if valida:
-                            st.session_state.cartas.append({
-                                'carta': carta,
-                                'id': id_carta,
-                                'orientacao': 'normal',
-                                'posicao': 'FUTURO'
-                            })
-                            
-                            with st.spinner("Ouvindo sua história..."):
-                                resultado = interpretar_tiragem(
-                                    st.session_state.cartas,
-                                    st.session_state.pergunta
-                                )
-                                st.session_state.resultado = resultado
-                                st.session_state.etapa = 'resultado'
-                                st.rerun()
-                        else:
-                            st.error("Carta não encontrada")
-                    else:
-                        st.warning("Digite o nome da carta")
-        
-        # ETAPA 5: RESULTADO - CONSELHO DO MENTOR
-        elif st.session_state.etapa == 'resultado':
-            if st.session_state.resultado:
-                st.markdown(f'<div class="resultado conselho">{st.session_state.resultado}</div>', unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("Nova consulta", use_container_width=True):
-                for key in ['etapa', 'pergunta', 'cartas', 'resultado']:
-                    if key in st.session_state:
-                        del st.session_state[key]
-                st.rerun()
-
-if __name__ == "__main__":
-    main()
+    if 'carta_atual' not in st.session_state:
+        st.session_state.c
