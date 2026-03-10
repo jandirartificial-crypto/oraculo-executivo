@@ -20,13 +20,13 @@ except Exception as e:
     st.stop()
 
 # ============================================
-# CSS - ULTRA MÍNIMO
+# CSS - AJUSTADO PARA TEXTOS LONGOS
 # ============================================
 st.markdown("""
     <style>
         /* Reset total */
         .stApp { background-color: #FFFFFF; }
-        .block-container { max-width: 600px; padding-top: 1rem; }
+        .block-container { max-width: 700px; padding-top: 1rem; }
         
         /* Botão preto */
         .stButton button {
@@ -55,22 +55,53 @@ st.markdown("""
             resize: none;
         }
         
-        /* Esconder tudo que não é necessário */
+        /* Esconder elementos padrão */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        /* Resultado em 5 linhas poéticas */
+        /* Resultado - adaptado para textos longos */
         .resultado {
-            font-size: 20px;
+            font-size: 18px;
             line-height: 1.8;
+            color: #212529;
+            text-align: left;
+            padding: 40px 30px;
+            background: #F8F9FA;
+            border-radius: 24px;
+            margin: 30px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        
+        /* Estilo para seções dentro do resultado */
+        .resultado h1, .resultado h2, .resultado h3 {
             color: #000000;
-            text-align: center;
-            padding: 40px 20px;
-            font-style: italic;
-            border-top: 1px solid #E9ECEF;
-            border-bottom: 1px solid #E9ECEF;
-            margin: 40px 0;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .resultado h1 { font-size: 24px; }
+        .resultado h2 { font-size: 20px; }
+        .resultado h3 { font-size: 18px; }
+        
+        .resultado p {
+            margin-bottom: 20px;
+        }
+        
+        .resultado ul, .resultado ol {
+            margin-bottom: 20px;
+            padding-left: 25px;
+        }
+        
+        .resultado li {
+            margin-bottom: 8px;
+        }
+        
+        .resultado hr {
+            margin: 30px 0;
+            border: none;
+            border-top: 1px solid #DEE2E6;
         }
         
         /* Título invisível */
@@ -255,10 +286,10 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
-# FUNÇÃO DE INTERPRETAÇÃO - 5 LINHAS POÉTICAS
+# FUNÇÃO DE INTERPRETAÇÃO - VERSÃO DETALHADA
 # ============================================
 def interpretar_tiragem(cartas, pergunta_usuario):
-    """Gera uma interpretação poética de exatamente 5 linhas"""
+    """Gera uma interpretação detalhada e humanizada."""
     try:
         modelo = genai.GenerativeModel('gemini-pro')
         
@@ -273,43 +304,73 @@ def interpretar_tiragem(cartas, pergunta_usuario):
                 f"{carta_info['posicao']}: {carta['nome']} ({orientacao})"
             )
         
-        prompt = f"""Você é um poeta e cartomante especialista em Baralho Cigano.
+        prompt = f"""
+Você é um tarólogo digital altamente intuitivo e humanizado, especialista em Baralho Cigano. Sua missão é guiar o consulente por meio de uma jornada interpretativa que combine empatia, sabedoria espiritual e aplicação prática. Siga rigorosamente a estrutura abaixo:
 
 Cartas: {cartas_descricao[0]}, {cartas_descricao[1]}, {cartas_descricao[2]}
 Pergunta: {pergunta_usuario if pergunta_usuario else 'a vida'}
 
-Escreva EXATAMENTE 5 linhas poéticas contendo:
-- 1 insight sobre o passado
-- 1 reflexão sobre o presente  
-- 1 movimento de ação para o futuro
-- Use metáforas e imagens poéticas
-- Não mencione os nomes das cartas explicitamente
-- Linguagem acolhedora e sábia
+ESTRUTURA DA LEITURA:
+1. Introdução (contextualize a pergunta com empatia; use voz falada).
+2. Método e posições (explique brevemente o papel de cada posição: PASSADO, PRESENTE, FUTURO).
+3. Interpretação carta a carta:
+   - Palavras-chave (3–5)
+   - Interpretação simbólica (visão espiritual/energética)
+   - Implicação prática (como isso atua no contexto do consulente)
+   - Descreva as interações entre as cartas como diálogos.
+4. Síntese geral (resuma a jornada energética).
+5. Cenários possíveis (3–4 cenários com probabilidade qualitativa e consequências).
+6. Recomendações práticas (3–5 ações concretas).
+7. Conselho pessoal / orientação do mentor (parágrafo longo e fluido).
 
-5 LINHAS APENAS:"""
+Lembre-se:
+- Use linguagem empática e acolhedora.
+- Conecte as cartas à pergunta do consulente.
+- Ofereça insights transformacionais e práticos.
+
+Sua resposta deve ser extensa, fluida e adaptada ao perfil do consulente.
+"""
         
         response = modelo.generate_content(prompt)
         
         if response and response.text:
-            # Limitar a exatamente 5 linhas
-            linhas = response.text.strip().split('\n')[:5]
-            return '\n'.join(linhas)
+            return response.text
         else:
-            return gerar_fallback_poetico(cartas)
+            return gerar_fallback_detalhado(cartas)
             
     except Exception as e:
-        return gerar_fallback_poetico(cartas)
+        return gerar_fallback_detalhado(cartas)
 
-def gerar_fallback_poetico(cartas):
-    """Fallback com 5 linhas poéticas"""
-    fallbacks = [
-        "O que passou teceu silêncios que hoje são raízes.",
-        "No presente, a árvore aprendeu a beber da própria sombra.",
-        "O movimento que esperas começa onde seus pés tocam o chão.",
-        "Não há vento contrário para quem sabe ajustar as velas.",
-        "Confia: o caminho se revela a cada passo dado."
-    ]
-    return '\n'.join(fallbacks)
+def gerar_fallback_detalhado(cartas):
+    """Fallback com interpretação detalhada."""
+    fallback = """
+Olá, querido consulente. Antes de mergulharmos na leitura, quero que saiba que sinto uma energia muito especial ao redor da sua pergunta. Você está em um momento de busca, e isso é algo poderoso.
+
+Método e Posições:
+Utilizei uma tiragem simples de três cartas, representando o Passado, o Presente e o Futuro. Cada posição nos oferece uma camada de entendimento sobre sua jornada.
+
+Interpretação Carta a Carta:
+1. PASSADO: A primeira carta nos mostra os fundamentos que te trouxeram até aqui. Ela fala de ciclos antigos e aprendizados que ainda ecoam em sua vida.
+2. PRESENTE: A segunda carta revela o momento atual. Aqui, vemos as energias que estão em movimento e como elas influenciam suas escolhas.
+3. FUTURO: A terceira carta aponta para os potenciais futuros. Ela sugere possibilidades e caminhos que podem se abrir para você.
+
+Síntese Geral:
+A jornada que essas cartas traçam é uma progressão clara de transformação. Do caos inicial ao despertar da clareza, há um convite para confiar no fluxo da vida.
+
+Cenários Possíveis:
+1. Renascimento Silencioso (Alta probabilidade): Um ciclo se fecha, trazendo paz interior.
+2. Tempestade Passageira (Média probabilidade): Desafios temporários que fortalecem seu espírito.
+3. Luz no Horizonte (Baixa probabilidade): Uma oportunidade inesperada surge.
+
+Recomendações Práticas:
+1. Dedique tempo à introspecção diária.
+2. Reavalie relacionamentos que não estão alinhados com seu propósito.
+3. Confie em sua intuição para tomar decisões importantes.
+
+Conselho Pessoal:
+Querido consulente, lembre-se de que toda jornada tem seus altos e baixos. O universo está conspirando a seu favor, mesmo quando as respostas parecem distantes. Confie no processo, seja gentil consigo mesmo e siga adiante com coragem. Você está no caminho certo, e o melhor ainda está por vir.
+"""
+    return fallback
 
 # ============================================
 # INTERFACE - MÍNIMA ABSOLUTA
@@ -442,7 +503,7 @@ def main():
                                 'posicao': 'FUTURO'
                             })
                             
-                            with st.spinner("..."):
+                            with st.spinner("🔮 Conectando com as energias..."):
                                 resultado = interpretar_tiragem(
                                     st.session_state.cartas,
                                     st.session_state.pergunta
@@ -455,7 +516,7 @@ def main():
                     else:
                         st.warning("Digite o nome da carta")
         
-        # ETAPA 5: RESULTADO - 5 LINHAS POÉTICAS
+        # ETAPA 5: RESULTADO - TEXTO LONGO COM FORMATAÇÃO
         elif st.session_state.etapa == 'resultado':
             if st.session_state.resultado:
                 st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
