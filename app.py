@@ -71,52 +71,71 @@ st.markdown("""
             border-radius: 24px;
             margin: 30px 0;
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            font-family: 'Georgia', serif;
         }
         
-        /* Estilo para seções dentro do resultado */
-        .resultado h1, .resultado h2, .resultado h3 {
+        /* Estilo para o conselho do mentor */
+        .conselho {
+            font-size: 19px;
+            line-height: 1.9;
+            color: #1a1a1a;
+        }
+        
+        .conselho p {
+            margin-bottom: 25px;
+        }
+        
+        .conselho strong {
             color: #000000;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            font-weight: 600;
+            font-weight: 700;
         }
         
-        .resultado h1 { font-size: 24px; }
-        .resultado h2 { font-size: 20px; }
-        .resultado h3 { font-size: 18px; }
-        
-        .resultado p {
-            margin-bottom: 20px;
+        .conselho em {
+            color: #495057;
+            font-style: italic;
         }
         
-        .resultado ul, .resultado ol {
-            margin-bottom: 20px;
-            padding-left: 25px;
+        .conselho .forcas {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+            border-left: 6px solid #2e7d32;
         }
         
-        .resultado li {
-            margin-bottom: 8px;
+        .conselho .limitacoes {
+            background: #ffebee;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+            border-left: 6px solid #c62828;
         }
         
-        .resultado hr {
+        .conselho .acoes {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+            border-left: 6px solid #1565c0;
+        }
+        
+        .conselho .caminhos {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+            border-left: 6px solid #ef6c00;
+        }
+        
+        hr {
             margin: 30px 0;
             border: none;
-            border-top: 1px solid #DEE2E6;
+            border-top: 2px solid #DEE2E6;
         }
         
         /* Título invisível */
         h1 {
             display: none !important;
-        }
-        
-        /* Texto de apoio */
-        .subtitulo {
-            text-align: center;
-            color: #6C757D;
-            font-size: 14px;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -286,10 +305,10 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
-# FUNÇÃO DE INTERPRETAÇÃO - VERSÃO DETALHADA
+# FUNÇÃO DE INTERPRETAÇÃO - FOCO NO CONSELHO DO MENTOR
 # ============================================
 def interpretar_tiragem(cartas, pergunta_usuario):
-    """Gera uma interpretação detalhada e humanizada."""
+    """Gera um conselho humanizado e completo baseado nas cartas."""
     try:
         modelo = genai.GenerativeModel('gemini-pro')
         
@@ -305,30 +324,38 @@ def interpretar_tiragem(cartas, pergunta_usuario):
             )
         
         prompt = f"""
-Você é um tarólogo digital altamente intuitivo e humanizado, especialista em Baralho Cigano. Sua missão é guiar o consulente por meio de uma jornada interpretativa que combine empatia, sabedoria espiritual e aplicação prática. Siga rigorosamente a estrutura abaixo:
+Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Sua missão é oferecer um conselho profundo, humanizado e prático para o consulente, baseado nas cartas que ele tirou.
 
 Cartas: {cartas_descricao[0]}, {cartas_descricao[1]}, {cartas_descricao[2]}
-Pergunta: {pergunta_usuario if pergunta_usuario else 'a vida'}
+Pergunta do consulente: {pergunta_usuario if pergunta_usuario else 'a vida'}
 
-ESTRUTURA DA LEITURA:
-1. Introdução (contextualize a pergunta com empatia; use voz falada).
-2. Método e posições (explique brevemente o papel de cada posição: PASSADO, PRESENTE, FUTURO).
-3. Interpretação carta a carta:
-   - Palavras-chave (3–5)
-   - Interpretação simbólica (visão espiritual/energética)
-   - Implicação prática (como isso atua no contexto do consulente)
-   - Descreva as interações entre as cartas como diálogos.
-4. Síntese geral (resuma a jornada energética).
-5. Cenários possíveis (3–4 cenários com probabilidade qualitativa e consequências).
-6. Recomendações práticas (3–5 ações concretas).
-7. Conselho pessoal / orientação do mentor (parágrafo longo e fluido).
+Escreva um **CONSELHO DO MENTOR** completo seguindo esta estrutura:
 
-Lembre-se:
-- Use linguagem empática e acolhedora.
-- Conecte as cartas à pergunta do consulente.
-- Ofereça insights transformacionais e práticos.
+1. **Acolhimento inicial** (2-3 frases): Receba o consulente com calor humano, validando sua jornada e sua pergunta.
 
-Sua resposta deve ser extensa, fluida e adaptada ao perfil do consulente.
+2. **O que as cartas revelam sobre você** (3-4 parágrafos):
+   - Suas FORÇAS: quais qualidades, potenciais e recursos internos estão disponíveis para você agora.
+   - Suas LIMITAÇÕES: quais padrões, medos ou bloqueios podem estar dificultando seu caminho (fale com cuidado e sem julgamento).
+
+3. **Caminhos possíveis** (3-4 parágrafos):
+   - Descreva 2-3 direções que você pode seguir a partir deste momento.
+   - Para cada caminho, aponte o que ele exige de você e o que pode trazer.
+   - Não faça escolhas pelo consulente, apenas ilumine as possibilidades.
+
+4. **Ações práticas para agora** (5-7 itens):
+   - Sugestões concretas, acionáveis e imediatas.
+   - Podem ser pequenas mudanças de hábito, exercícios de autoconhecimento, atitudes diárias.
+
+5. **Encerramento com sabedoria** (3-4 frases):
+   - Uma mensagem final de confiança, esperança e empoderamento.
+
+IMPORTANTE:
+- Use linguagem acolhedora, como se estivesse falando diretamente com o consulente.
+- Conecte TUDO à pergunta que ele fez.
+- Seja específico, evite clichês vazios.
+- Traga exemplos concretos de como ele pode aplicar o conselho na vida real.
+- Lembre-se: você é um mentor, não um adivinho. Seu papel é iluminar, não determinar.
+- Escreva em português fluente e natural.
 """
         
         response = modelo.generate_content(prompt)
@@ -336,41 +363,54 @@ Sua resposta deve ser extensa, fluida e adaptada ao perfil do consulente.
         if response and response.text:
             return response.text
         else:
-            return gerar_fallback_detalhado(cartas)
+            return gerar_conselho_fallback(cartas, pergunta_usuario)
             
     except Exception as e:
-        return gerar_fallback_detalhado(cartas)
+        return gerar_conselho_fallback(cartas, pergunta_usuario)
 
-def gerar_fallback_detalhado(cartas):
-    """Fallback com interpretação detalhada."""
-    fallback = """
-Olá, querido consulente. Antes de mergulharmos na leitura, quero que saiba que sinto uma energia muito especial ao redor da sua pergunta. Você está em um momento de busca, e isso é algo poderoso.
+def gerar_conselho_fallback(cartas, pergunta):
+    """Fallback com conselho humanizado."""
+    
+    conselho = f"""
+Querido(a) consulente,
 
-Método e Posições:
-Utilizei uma tiragem simples de três cartas, representando o Passado, o Presente e o Futuro. Cada posição nos oferece uma camada de entendimento sobre sua jornada.
+Sinto uma energia muito especial ao redor da sua pergunta. Você está em um momento de busca sincera, e isso já demonstra uma coragem imensa. Quero que saiba que estou aqui para caminhar ao seu lado nesta reflexão, com todo o respeito pela sua história.
 
-Interpretação Carta a Carta:
-1. PASSADO: A primeira carta nos mostra os fundamentos que te trouxeram até aqui. Ela fala de ciclos antigos e aprendizados que ainda ecoam em sua vida.
-2. PRESENTE: A segunda carta revela o momento atual. Aqui, vemos as energias que estão em movimento e como elas influenciam suas escolhas.
-3. FUTURO: A terceira carta aponta para os potenciais futuros. Ela sugere possibilidades e caminhos que podem se abrir para você.
+**O que as cartas revelam sobre você**
 
-Síntese Geral:
-A jornada que essas cartas traçam é uma progressão clara de transformação. Do caos inicial ao despertar da clareza, há um convite para confiar no fluxo da vida.
+Suas forças são maiores do que você imagina. Existe em você uma capacidade de se reinventar que talvez ainda não tenha sido completamente acessada. As cartas mostram que você já passou por situações desafiadoras antes e que carrega consigo aprendizados valiosos — mesmo que, às vezes, eles fiquem escondidos sob o cansaço ou a dúvida. Sua intuição é um farol poderoso, mesmo quando as águas estão turvas.
 
-Cenários Possíveis:
-1. Renascimento Silencioso (Alta probabilidade): Um ciclo se fecha, trazendo paz interior.
-2. Tempestade Passageira (Média probabilidade): Desafios temporários que fortalecem seu espírito.
-3. Luz no Horizonte (Baixa probabilidade): Uma oportunidade inesperada surge.
+Ao mesmo tempo, as cartas também apontam para algumas limitações que merecem sua atenção. Talvez exista um padrão de se cobrar demais, de querer respostas imediatas para perguntas que ainda estão amadurecendo. Ou quem sabe um medo de confiar no fluxo da vida, de soltar o controle e permitir que o novo chegue. Não se culpe por isso — essas são camadas de proteção que você construiu ao longo do caminho, e agora podemos olhar para elas com compaixão.
 
-Recomendações Práticas:
-1. Dedique tempo à introspecção diária.
-2. Reavalie relacionamentos que não estão alinhados com seu propósito.
-3. Confie em sua intuição para tomar decisões importantes.
+**Caminhos possíveis**
 
-Conselho Pessoal:
-Querido consulente, lembre-se de que toda jornada tem seus altos e baixos. O universo está conspirando a seu favor, mesmo quando as respostas parecem distantes. Confie no processo, seja gentil consigo mesmo e siga adiante com coragem. Você está no caminho certo, e o melhor ainda está por vir.
+Olhando para o momento que você vive, enxergo pelo menos duas direções que podem se abrir:
+
+Um caminho é o da **escuta interior mais profunda**. Isso significa desacelerar, criar espaços de silêncio na rotina, observar seus sentimentos sem julgamento. Esse caminho exige paciência, mas pode trazer clarezas que nenhuma resposta externa seria capaz de dar.
+
+Outro caminho é o da **ação consciente**. Pequenos movimentos práticos, mesmo imperfeitos, que tiram você do lugar e geram aprendizado real. Esse caminho exige coragem para errar, mas pode trazer descobertas que só acontecem quando a gente se coloca em movimento.
+
+Talvez exista ainda um terceiro caminho, que é justamente **aprender a sustentar a pergunta sem precisar respondê-la agora**. Algumas questões da vida não têm resposta imediata — e tudo bem. Elas nos acompanham, nos transformam, e um dia fazem sentido.
+
+**Ações práticas para agora**
+
+1. Reserve 10 minutos por dia para escrever livremente sobre o que sente, sem compromisso com "fazer sentido".
+2. Escolha uma pequena ação que você vem adiando e faça hoje, mesmo que imperfeita.
+3. Observe seus diálogos internos: quando você se critica, tente se falar com a mesma gentileza que usaria com um amigo querido.
+4. Conecte-se com a natureza, mesmo que por poucos minutos — sinta o chão, o ar, o presente.
+5. Pergunte-se: "O que eu realmente preciso agora?" e ouça a primeira resposta que vier, sem filtrar.
+6. Se possível, converse com alguém de confiança sobre o que está sentindo — o simples ato de compartilhar já alivia.
+7. Confie mais no seu corpo: ele sente antes da mente entender.
+
+**Para encerrar**
+
+Querido(a), lembre-se: você não está sozinho(a) nesta jornada. As perguntas que traz são legítimas, e as respostas virão no tempo certo — não necessariamente no tempo que você espera, mas no tempo que sua alma precisa para amadurecê-las. Confie no processo, confie em você. O caminho se faz ao caminhar, e cada passo, mesmo os mais hesitantes, já é uma conquista.
+
+Com todo o carinho e respeito pela sua história,
+
+Seu mentor.
 """
-    return fallback
+    return conselho
 
 # ============================================
 # INTERFACE - MÍNIMA ABSOLUTA
@@ -433,7 +473,7 @@ def main():
                         st.session_state.cartas = [{
                             'carta': carta,
                             'id': id_carta,
-                            'orientacao': 'normal',  # sempre normal
+                            'orientacao': 'normal',
                             'posicao': 'PASSADO'
                         }]
                         st.session_state.etapa = 'carta2'
@@ -463,7 +503,7 @@ def main():
                         st.session_state.cartas.append({
                             'carta': carta,
                             'id': id_carta,
-                            'orientacao': 'normal',  # sempre normal
+                            'orientacao': 'normal',
                             'posicao': 'PRESENTE'
                         })
                         st.session_state.etapa = 'carta3'
@@ -492,18 +532,18 @@ def main():
                     st.session_state.etapa = 'carta2'
                     st.rerun()
             with col2:
-                if st.button("Interpretar", use_container_width=True, type="primary"):
+                if st.button("Receber conselho", use_container_width=True, type="primary"):
                     if carta3:
                         valida, id_carta, carta = validar_carta(carta3)
                         if valida:
                             st.session_state.cartas.append({
                                 'carta': carta,
                                 'id': id_carta,
-                                'orientacao': 'normal',  # sempre normal
+                                'orientacao': 'normal',
                                 'posicao': 'FUTURO'
                             })
                             
-                            with st.spinner("🔮 Conectando com as energias..."):
+                            with st.spinner("Ouvindo sua história..."):
                                 resultado = interpretar_tiragem(
                                     st.session_state.cartas,
                                     st.session_state.pergunta
@@ -516,10 +556,10 @@ def main():
                     else:
                         st.warning("Digite o nome da carta")
         
-        # ETAPA 5: RESULTADO - TEXTO LONGO COM FORMATAÇÃO
+        # ETAPA 5: RESULTADO - CONSELHO DO MENTOR
         elif st.session_state.etapa == 'resultado':
             if st.session_state.resultado:
-                st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="resultado conselho">{st.session_state.resultado}</div>', unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             
