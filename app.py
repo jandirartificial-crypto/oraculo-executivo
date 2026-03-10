@@ -3,6 +3,7 @@ import google.generativeai as genai
 from datetime import datetime
 import json
 import re
+import time
 
 # ============================================
 # CONFIGURAÇÃO INICIAL
@@ -120,11 +121,14 @@ st.markdown("""
             border-bottom: 1px solid #DEE2E6;
         }
         
-        /* Botões de navegação */
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
+        /* Progresso das requisições */
+        .progresso-requisicoes {
+            background: #F8F9FA;
+            border-radius: 12px;
+            padding: 20px;
             margin: 20px 0;
+            text-align: center;
+            border: 1px solid #DEE2E6;
         }
         
         /* Título principal */
@@ -143,6 +147,88 @@ st.markdown("""
             letter-spacing: 1px;
         }
     </style>
+    
+    <!-- JavaScript para IndexedDB -->
+    <script>
+        // Abrir banco de dados
+        function abrirBD() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('BaralhoCiganoDB', 1);
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('respostas')) {
+                        db.createObjectStore('respostas', { keyPath: 'id' });
+                    }
+                };
+                
+                request.onsuccess = (event) => resolve(event.target.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Salvar resposta
+        window.salvarResposta = async (id, texto) => {
+            try {
+                const db = await abrirBD();
+                const transaction = db.transaction(['respostas'], 'readwrite');
+                const store = transaction.objectStore('respostas');
+                
+                return new Promise((resolve, reject) => {
+                    const request = store.put({ id: id, texto: texto, timestamp: Date.now() });
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => reject(false);
+                });
+            } catch (e) {
+                console.error('Erro ao salvar:', e);
+                return false;
+            }
+        };
+        
+        // Carregar resposta
+        window.carregarResposta = async (id) => {
+            try {
+                const db = await abrirBD();
+                const transaction = db.transaction(['respostas'], 'readonly');
+                const store = transaction.objectStore('respostas');
+                
+                return new Promise((resolve, reject) => {
+                    const request = store.get(id);
+                    request.onsuccess = () => resolve(request.result ? request.result.texto : null);
+                    request.onerror = () => reject(null);
+                });
+            } catch (e) {
+                console.error('Erro ao carregar:', e);
+                return null;
+            }
+        };
+        
+        // Limpar respostas antigas (mais de 1 dia)
+        window.limparRespostasAntigas = async () => {
+            try {
+                const db = await abrirBD();
+                const transaction = db.transaction(['respostas'], 'readwrite');
+                const store = transaction.objectStore('respostas');
+                const umDiaAtras = Date.now() - (24 * 60 * 60 * 1000);
+                
+                const request = store.openCursor();
+                request.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        if (cursor.value.timestamp < umDiaAtras) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    }
+                };
+            } catch (e) {
+                console.error('Erro ao limpar:', e);
+            }
+        };
+        
+        // Executar limpeza ao carregar
+        window.limparRespostasAntigas();
+    </script>
 """, unsafe_allow_html=True)
 
 # ============================================
@@ -310,18 +396,194 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
+# FUNÇÕES PARA REQUISIÇÕES SEQUENCIAIS
+# ============================================
+def gerar_parte_1(cartas, pergunta_usuario, posicoes):
+    """Gera a primeira parte: Introdução + Suas Cartas + O que se passa em você + O que se passa nela"""
+    
+    # Preparar dados das cartas
+    cartas_descricao = []
+    for i, carta_info in enumerate(cartas):
+        carta = carta_info['carta']
+        orientacao = carta_info['orientacao']
+        cartas_descricao.append(
+            f"{i+1}. {posicoes[i]}: {carta['nome']} ({orientacao})"
+        )
+    
+    cartas_texto = "\n".join(cartas_descricao)
+    
+    prompt = f"""
+Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano.
+
+## CONTEXTO DA CONSULTA:
+Pergunta do consulente: {pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
+
+## AS CARTAS TIRADAS:
+{cartas_texto}
+
+## INSTRUÇÕES:
+Escreva as seguintes seções da resposta, com EXTREMA PROFUNDIDADE e detalhamento:
+
+### CARTA AO CONSULENTE
+(Um parágrafo longo e acolhedor, contextualizando a dor e a jornada do consulente)
+
+### O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
+(Interpretação DETALHADA das cartas 1, 2 e 3. Para CADA carta: 3-4 parágrafos com interpretação simbólica, significado comportamental, e sempre termine com "O que isso significa na prática:" e uma aplicação direta.)
+
+### O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
+(Interpretação DETALHADA das cartas 4, 5 e 6. Mesma estrutura acima, com 3-4 parágrafos por carta.)
+
+Sua resposta deve ser LONGAMENTE DETALHADA, com pelo menos 1500 palavras.
+"""
+    
+    modelo = genai.GenerativeModel('gemini-pro')
+    response = modelo.generate_content(prompt)
+    return response.text if response and response.text else ""
+
+def gerar_parte_2(cartas, pergunta_usuario, posicoes):
+    """Gera a segunda parte: Desfecho + Diálogo entre cartas + O que a ciência diz"""
+    
+    # Preparar dados das cartas
+    cartas_descricao = []
+    for i, carta_info in enumerate(cartas):
+        carta = carta_info['carta']
+        orientacao = carta_info['orientacao']
+        cartas_descricao.append(
+            f"{i+1}. {posicoes[i]}: {carta['nome']} ({orientacao})"
+        )
+    
+    cartas_texto = "\n".join(cartas_descricao)
+    
+    prompt = f"""
+Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano.
+
+## CONTEXTO DA CONSULTA:
+Pergunta do consulente: {pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
+
+## AS CARTAS TIRADAS:
+{cartas_texto}
+
+## INSTRUÇÕES:
+Escreva as seguintes seções da resposta, com EXTREMA PROFUNDIDADE e detalhamento:
+
+### PARA ONDE TUDO ISSO ESTÁ LEVANDO
+(Interpretação da carta 7 - o desfecho. Pelo menos 4 parágrafos, mostrando tendências e possibilidades. Inclua "O que isso significa na prática:")
+
+### O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
+(Análise profunda das interações entre as cartas. Mínimo de 6 parágrafos. Mostre: o que está em sincronia, o que está em desencontro, o que cada um está projetando no outro, como as energias se complementam ou se chocam.)
+
+### O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
+(6-8 fatos científicos diretos sobre relacionamentos, neurociência do amor, estresse, desejo, comunicação. Cada fato com um parágrafo explicativo e aplicado à situação.)
+
+Sua resposta deve ser LONGAMENTE DETALHADA, com pelo menos 1500 palavras.
+"""
+    
+    modelo = genai.GenerativeModel('gemini-pro')
+    response = modelo.generate_content(prompt)
+    return response.text if response and response.text else ""
+
+def gerar_parte_3(cartas, pergunta_usuario, posicoes):
+    """Gera a terceira parte: Filosofia + Ilusões + Ações + Palavras Finais"""
+    
+    # Preparar dados das cartas
+    cartas_descricao = []
+    for i, carta_info in enumerate(cartas):
+        carta = carta_info['carta']
+        orientacao = carta_info['orientacao']
+        cartas_descricao.append(
+            f"{i+1}. {posicoes[i]}: {carta['nome']} ({orientacao})"
+        )
+    
+    cartas_texto = "\n".join(cartas_descricao)
+    
+    prompt = f"""
+Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano.
+
+## CONTEXTO DA CONSULTA:
+Pergunta do consulente: {pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
+
+## AS CARTAS TIRADAS:
+{cartas_texto}
+
+## INSTRUÇÕES:
+Escreva as seguintes seções da resposta, com EXTREMA PROFUNDIDADE e detalhamento:
+
+### O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
+(5 escolas filosóficas: Estoicismo, Budismo, Sikhismo, Existencialismo, Taoísmo. Para CADA uma: um parágrafo longo explicando o princípio e aplicando diretamente à situação do consulente.)
+
+### AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
+(6-8 ilusões comuns em relacionamentos. Para CADA: "**Ilusão:** [frase entre aspas]" seguido de 2-3 parágrafos desmontando a ilusão com exemplos práticos.)
+
+### O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
+(10-12 ações práticas, numeradas. Para CADA: um parágrafo explicativo detalhado sobre como implementar, exemplos do dia a dia, o que esperar.)
+
+### PALAVRAS FINAIS
+(Um encerramento poético e empoderador de 5-6 parágrafos, retomando as cartas, oferecendo esperança, e lembrando que a escolha é do consulente. Incluir uma "Nota para o consulente" no final.)
+
+Sua resposta deve ser LONGAMENTE DETALHADA, com pelo menos 1800 palavras.
+"""
+    
+    modelo = genai.GenerativeModel('gemini-pro')
+    response = modelo.generate_content(prompt)
+    return response.text if response and response.text else ""
+
+def salvar_no_indexeddb(chave, valor):
+    """Salva dados no IndexedDB via JavaScript"""
+    js_code = f"""
+    <script>
+        (async function() {{
+            await window.salvarResposta('{chave}', {json.dumps(valor)});
+        }})();
+    </script>
+    """
+    st.components.v1.html(js_code, height=0)
+
+def carregar_do_indexeddb(chave):
+    """Carrega dados do IndexedDB via JavaScript (requer rerun)"""
+    js_code = f"""
+    <script>
+        (async function() {{
+            const valor = await window.carregarResposta('{chave}');
+            if (valor) {{
+                // Enviar para o Streamlit via sessionStorage
+                sessionStorage.setItem('{chave}', valor);
+                window.location.reload();
+            }}
+        }})();
+    </script>
+    """
+    st.components.v1.html(js_code, height=0)
+    
+    # Tentar recuperar do sessionStorage
+    valor = st.session_state.get(f"_storage_{chave}")
+    if valor:
+        return valor
+    
+    # Tentar via JavaScript
+    valor_js = st.session_state.get(f"_js_{chave}")
+    if valor_js:
+        return valor_js
+    
+    return None
+
+# ============================================
 # FUNÇÃO PARA DIVIDIR RESPOSTA EM SEÇÕES
 # ============================================
 def dividir_resposta_em_secoes(texto_completo):
     """
-    Divide a resposta completa em seções baseadas nos títulos ##
+    Divide a resposta completa em seções baseadas nos títulos ###
     """
     if not texto_completo:
         return []
     
-    # Padrão para encontrar títulos ##
-    padrao = r'(## .+?)(?=## |\Z)'
+    # Padrão para encontrar títulos ###
+    padrao = r'### (.+?)(?=### |\Z)'
     matches = re.findall(padrao, texto_completo, re.DOTALL)
+    
+    if not matches:
+        # Tentar com ## se não encontrar ###
+        padrao = r'## (.+?)(?=## |\Z)'
+        matches = re.findall(padrao, texto_completo, re.DOTALL)
     
     if not matches:
         # Se não encontrar seções, retorna o texto inteiro como uma única seção
@@ -330,236 +592,14 @@ def dividir_resposta_em_secoes(texto_completo):
     secoes = []
     for match in matches:
         linhas = match.strip().split('\n', 1)
-        titulo = linhas[0].replace('##', '').strip()
+        titulo = linhas[0].replace('##', '').replace('###', '').strip()
         conteudo = linhas[1] if len(linhas) > 1 else ""
         secoes.append({"titulo": titulo, "conteudo": conteudo})
     
     return secoes
 
 # ============================================
-# FUNÇÃO DE INTERPRETAÇÃO - MÉTODO AFRODITE (7 CARTAS)
-# ============================================
-def interpretar_tiragem_afrodite(cartas, pergunta_usuario):
-    """Gera uma interpretação profunda para a tiragem de Afrodite (7 cartas)."""
-    try:
-        modelo = genai.GenerativeModel('gemini-pro')
-        
-        # Posições da tiragem Afrodite
-        posicoes = [
-            "Pensamentos e Intenções do consulente",
-            "Sentimentos do consulente pela companheira",
-            "Atração sexual, desejos e libido do consulente por ela",
-            "Pensamentos e Intenções da companheira",
-            "Sentimentos da companheira pelo consulente",
-            "Atração sexual, desejos e libido dela por ele",
-            "O desfecho: O que resultará dessa relação"
-        ]
-        
-        # Preparar dados das cartas com suas posições
-        cartas_completo = []
-        for i, carta_info in enumerate(cartas):
-            carta = carta_info['carta']
-            orientacao = carta_info['orientacao']
-            
-            cartas_completo.append({
-                'posicao': i+1,
-                'nome': carta['nome'],
-                'orientacao': orientacao,
-                'significado': carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
-            })
-        
-        # Criar descrição detalhada para o prompt
-        cartas_descricao = []
-        for c in cartas_completo:
-            cartas_descricao.append(
-                f"{c['posicao']}. {posicoes[c['posicao']-1]}: {c['nome']} ({c['orientacao']})"
-            )
-        
-        cartas_texto = "\n".join(cartas_descricao)
-        
-        # Prompt com o estilo EXATO da resposta aprovada
-        prompt = f"""
-Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Sua missão é oferecer um conselho profundo, humanizado e prático para o consulente, baseado na tiragem de Afrodite (7 cartas para análise de relacionamento).
-
-## CONTEXTO DA CONSULTA:
-Pergunta do consulente: {pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
-
-## AS CARTAS TIRADAS:
-{cartas_texto}
-
-## INSTRUÇÕES CRÍTICAS - SIGA EXATAMENTE ESTE ESTILO:
-
-Escreva uma resposta com a seguinte estrutura e tom. Use a resposta abaixo como REFERÊNCIA DE ESTILO - deve ser igual em profundidade, tom acolhedor e estrutura.
-
-### ESTRUTURA OBRIGATÓRIA:
-
-## CARTA AO CONSULENTE
-(Um parágrafo acolhedor que contextualiza a dor/pergunta do consulente, validando sua jornada.)
-
-## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
-(Interpretação das cartas 1, 2 e 3. Para CADA carta: **Carta X – [Nome]**: [2-3 parágrafos interpretando a carta, sempre terminando com "O que isso significa na prática:" e uma frase direta.])
-
-## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
-(Interpretação das cartas 4, 5 e 6 - mesma estrutura acima.)
-
-## PARA ONDE TUDO ISSO ESTÁ LEVANDO
-(Interpretação da carta 7, com "O que isso significa na prática:")
-
-## O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
-(Análise das interações entre as cartas, com frases como "Seu Coração (amor) encontra as Estrelas dela (esperança)." Mostre o que está em sincronia e o que está em desencontro. Pelo menos 4 parágrafos.)
-
-## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
-(4-5 fatos científicos diretos, cada um com um parágrafo curto. Use "Sobre [tema]:" para introduzir cada um.)
-
-## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
-(Estoicismo, Budismo, Sikhismo, Existencialismo - um parágrafo para cada escola, aplicado diretamente à situação do consulente. Use o nome da escola como subtítulo.)
-
-## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
-(4-5 ilusões comuns, cada uma com o formato: "**Ilusão [número]:** [Frase entre aspas]" seguido de um parágrafo curto desmontando a ilusão.)
-
-## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
-(8-10 ações práticas, numeradas, cada uma com um parágrafo explicativo. As ações devem ser específicas e imediatas.)
-
-## PALAVRAS FINAIS
-(Um encerramento poético e empoderador de 3-4 parágrafos, retomando as cartas e oferecendo esperança e direção. Incluir "Nota para o consulente" no final.)
-
-### DIRETRIZES DE TOM:
-
-- Use linguagem profundamente humana e acolhedora.
-- As interpretações devem ser ricas, com pelo menos 3-4 frases por carta.
-- Conecte TUDO à pergunta e situação específica do consulente.
-- Seja direto, mas nunca cruel.
-- Use frases como "O que isso significa na prática:" para trazer a interpretação para o terreno da vida real.
-- O texto deve ter QUALIDADE DE LIVRO - pode ser transformado em PDF.
-- NÃO seja acadêmico demais - a ciência e filosofia devem ser pontuais e aplicadas.
-- Termine sempre com uma mensagem de empoderamento.
-- **A resposta deve ser LONGAMENTE DETALHADA, com pelo menos 4000 palavras. Não economize na profundidade.**
-
-Agora, escreva a resposta completa seguindo exatamente esta estrutura e tom.
-"""
-        
-        response = modelo.generate_content(prompt)
-        
-        if response and response.text:
-            return response.text
-        else:
-            return gerar_conselho_fallback_afrodite(cartas, pergunta_usuario)
-            
-    except Exception as e:
-        return gerar_conselho_fallback_afrodite(cartas, pergunta_usuario)
-
-def gerar_conselho_fallback_afrodite(cartas, pergunta):
-    """Fallback para a tiragem Afrodite."""
-    
-    if len(cartas) < 7:
-        return "Não foi possível gerar a interpretação completa. Por favor, tente novamente."
-    
-    # Extrair nomes das cartas
-    nomes = [carta_info['carta']['nome'] for carta_info in cartas]
-    
-    conselho = f"""
-## CARTA AO CONSULENTE
-
-Prezado, a pergunta que você traz é sobre amor, sobre conexão, sobre o que ainda existe entre duas pessoas que um dia se escolheram. Não estamos diante de uma simples briga de casal – estamos diante de um relacionamento que adoeceu e precisa de diagnóstico antes do tratamento. Nas próximas páginas, você encontrará não apenas o significado das cartas, mas um mapa para entender o que realmente está acontecendo – e o que você pode fazer a respeito.
-
-Leia com calma. Algumas verdades vão doer. Mas a dor que cura é diferente da dor que paralisa.
-
-## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
-
-**Carta 1 – {nomes[0]}: Seus pensamentos e intenções**
-Esta carta revela o estado da sua mente neste momento. Seus pensamentos estão acelerados ou tranquilos? Direcionados para ação ou para reflexão? Observe o que esta carta diz sobre como você está processando a situação.
-
-**Carta 2 – {nomes[1]}: Seus sentimentos por ela**
-Aqui está a verdade do seu coração. O que você realmente sente por ela, para além das mágoas e dos desgastes. Esse sentimento é a base sobre a qual qualquer reconstrução pode acontecer.
-
-**Carta 3 – {nomes[2]}: Seu desejo sexual por ela**
-O desejo fala de atração, de libido, de vontade de se aproximar fisicamente. Esta carta mostra se esse canal ainda está aberto ou se ele foi fechado pela rotina e pelos conflitos.
-
-## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
-
-**Carta 4 – {nomes[3]}: Pensamentos e intenções dela**
-A mente dela pode estar clara ou confusa, aberta ou defensiva. Esta carta revela como ela está processando a relação internamente.
-
-**Carta 5 – {nomes[4]}: Sentimentos dela por você**
-Apesar das aparências, o que ela realmente sente? Esta carta mostra se o amor ainda existe ou se já foi substituído por indiferença ou ressentimento.
-
-**Carta 6 – {nomes[5]}: Desejo sexual dela por você**
-O desejo feminino é complexo e muitas vezes reativo à segurança emocional. Esta carta indica se ela ainda sente atração ou se esse canal foi temporariamente interrompido.
-
-## PARA ONDE TUDO ISSO ESTÁ LEVANDO
-
-**Carta 7 – {nomes[6]}: O desfecho**
-Esta carta não é uma sentença, mas uma tendência. Mostra para onde a relação está caminhando SE nada mudar. É um aviso, não um destino.
-
-## O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
-
-Observe a dança entre o que você sente e o que ela sente, entre o que você deseja e o que ela deseja. Existe sincronia ou assincronia? Vocês estão no mesmo comprimento de onda ou em frequências opostas?
-
-## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
-
-- **Sobre o estresse crônico**: Casais em conflito constante têm níveis elevados de cortisol, o que afeta a comunicação e o desejo.
-- **Sobre o desejo feminino**: Estudos mostram que a atração sexual na mulher está diretamente ligada à sensação de segurança emocional.
-- **Sobre a comunicação**: O cérebro processa críticas como ameaça física, ativando as mesmas áreas de defesa.
-- **Sobre a esperança**: A expectativa de melhora ativa os mesmos circuitos de recompensa que a melhora real.
-
-## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
-
-**Estoicismo**: Foque no que depende de você – suas ações, suas escolhas, sua forma de reagir. O resto, inclusive os sentimentos dela, não está sob seu controle.
-
-**Budismo**: Tudo é impermanente. Esta crise vai passar. A questão é o que restará depois. O apego a como as coisas "deveriam ser" é a raiz do sofrimento.
-
-**Sikhismo**: Aja com excelência, mas sem se apegar ao resultado. Você pode dar o melhor de si para reconstruir a relação, mas sem se prender ao resultado.
-
-**Existencialismo**: Você é livre para escolher. As cartas mostram tendências, não destinos. A responsabilidade pela decisão é sua.
-
-## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
-
-1. **"Se eu explicar direito, ela vai entender."** Não, não vai. Quando alguém está na defensiva, explicações soam como justificativas, não como diálogo.
-
-2. **"Se ela me amasse, me desejaria."** Não é assim que funciona. Amor e desejo são circuitos diferentes no cérebro.
-
-3. **"Preciso resolver isso rápido."** Não, não precisa. Relações desgastadas por anos não se curam em dias.
-
-4. **"O problema é só [circunstância externa]."** As circunstâncias agravam, mas raramente são a causa raiz.
-
-## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
-
-1. **Desacelere**: Estabeleça um período de 30 dias sem conversas pesadas sobre a relação. Apenas observe, acolha, esteja presente.
-
-2. **Crie segurança**: Consistência, previsibilidade e escuta ativa. Segurança se cria com ações, não com palavras.
-
-3. **Mude a forma de se comunicar**: Use a estrutura "Quando você... eu sinto... porque preciso... você topa...?"
-
-4. **Crie rituais mínimos de conexão**: 10 minutos por dia lado a lado, sem obrigação de conversar.
-
-5. **Respeite o tempo dela, mas também o seu**: Observe se ela está se movendo em sua direção. Se depois de 60 dias não houver mudança, você terá sua resposta.
-
-6. **Cuide de você primeiro**: Sua energia e autoestima afetam diretamente a relação. Busque fontes de renda, atividades que te fortaleçam, rede de apoio.
-
-7. **Estabeleça um marco**: 60 dias para reavaliar se houve mudança.
-
-## PALAVRAS FINAIS
-
-O livro que você acabou de ler não é um oráculo – é um espelho. As cartas não criaram sua realidade, apenas a revelaram.
-
-Você ainda sente. Ela ainda tem esperança. Isso é mais do que muitos casais têm quando chegam onde vocês chegaram.
-
-Mas amor sem ação é só sentimento. Esperança sem mudança é só ilusão.
-
-A Âncora no final não é uma sentença – é uma escolha. Você pode continuar parado, imóvel, pesado. Ou pode usar o peso dela para se estabilizar enquanto decide para onde navegar.
-
-O que você escolher será certo. Não porque as cartas disseram, mas porque **você** escolheu.
-
-Com respeito pela sua história e pela coragem de buscar respostas,
-
-*Seu mentor.*
-
-📌 **Nota para o consulente:** Este texto é seu. Guarde, releia, compartilhe com quem precisa. As respostas que você busca já estão dentro de você – as cartas só ajudaram a organizá-las.
-"""
-    return conselho
-
-# ============================================
-# INTERFACE - MÉTODO AFRODITE COM PAGINAÇÃO
+# INTERFACE - MÉTODO AFRODITE COM 3 REQUISIÇÕES
 # ============================================
 def main():
     # Título
@@ -573,14 +613,27 @@ def main():
         st.session_state.pergunta = ""
     if 'cartas' not in st.session_state:
         st.session_state.cartas = []
-    if 'resultado_completo' not in st.session_state:
-        st.session_state.resultado_completo = None
+    if 'partes' not in st.session_state:
+        st.session_state.partes = {}
     if 'secoes' not in st.session_state:
         st.session_state.secoes = []
     if 'pagina_atual' not in st.session_state:
         st.session_state.pagina_atual = 0
     if 'carta_atual' not in st.session_state:
         st.session_state.carta_atual = 1
+    if 'requisicao_atual' not in st.session_state:
+        st.session_state.requisicao_atual = 0
+    
+    # Posições da tiragem Afrodite
+    posicoes = [
+        "Pensamentos e Intenções do consulente",
+        "Sentimentos do consulente pela companheira",
+        "Atração sexual, desejos e libido do consulente por ela",
+        "Pensamentos e Intenções da companheira",
+        "Sentimentos da companheira pelo consulente",
+        "Atração sexual, desejos e libido dela por ele",
+        "O desfecho: O que resultará dessa relação"
+    ]
     
     # Container central
     with st.container():
@@ -608,11 +661,11 @@ def main():
                     st.warning("Digite sua pergunta")
         
         # ETAPAS 2 a 8: SETE CARTAS
-        elif st.session_state.etapa.startswith('carta'):
+        elif st.session_state.etapa.startswith('carta') and st.session_state.etapa != 'carta_completa':
             carta_num = int(st.session_state.etapa.replace('carta', ''))
             
             # Posições das cartas
-            posicoes = [
+            posicoes_interface = [
                 "1ª carta — Pensamentos e Intenções (você)",
                 "2ª carta — Sentimentos (você)",
                 "3ª carta — Desejo sexual (você)",
@@ -622,7 +675,7 @@ def main():
                 "7ª carta — O desfecho"
             ]
             
-            st.markdown(f"**{posicoes[carta_num-1]}**")
+            st.markdown(f"**{posicoes_interface[carta_num-1]}**")
             st.markdown(f"<div class='progresso-cartas'>Carta {carta_num} de 7</div>", unsafe_allow_html=True)
             
             carta_input = st.text_input(
@@ -663,7 +716,7 @@ def main():
                                         'carta': carta,
                                         'id': id_carta,
                                         'orientacao': 'normal',
-                                        'posicao': posicoes[carta_num-1],
+                                        'posicao': posicoes_interface[carta_num-1],
                                         'posicao_num': carta_num
                                     })
                                     
@@ -680,7 +733,7 @@ def main():
                             st.warning("Digite o nome da carta")
                 
                 else:  # Última carta (7)
-                    if st.button("Finalizar e interpretar", use_container_width=True, type="primary"):
+                    if st.button("Finalizar", use_container_width=True, type="primary"):
                         if carta_input:
                             valida, id_carta, carta = validar_carta(carta_input)
                             if valida:
@@ -692,29 +745,88 @@ def main():
                                     'carta': carta,
                                     'id': id_carta,
                                     'orientacao': 'normal',
-                                    'posicao': posicoes[6],
+                                    'posicao': posicoes_interface[6],
                                     'posicao_num': 7
                                 })
                                 
                                 # Ordenar por posição
                                 st.session_state.cartas.sort(key=lambda x: x['posicao_num'])
                                 
-                                with st.spinner("🔮 Interpretando sua história..."):
-                                    resultado = interpretar_tiragem_afrodite(
-                                        st.session_state.cartas,
-                                        st.session_state.pergunta
-                                    )
-                                    
-                                    # Armazenar resultado completo e dividir em seções
-                                    st.session_state.resultado_completo = resultado
-                                    st.session_state.secoes = dividir_resposta_em_secoes(resultado)
-                                    st.session_state.pagina_atual = 0
-                                    st.session_state.etapa = 'resultado'
-                                    st.rerun()
+                                st.session_state.etapa = 'gerando'
+                                st.session_state.requisicao_atual = 0
+                                st.session_state.partes = {}
+                                st.rerun()
                             else:
                                 st.error("Carta não encontrada")
                         else:
                             st.warning("Digite o nome da carta")
+        
+        # ETAPA DE GERAÇÃO COM 3 REQUISIÇÕES
+        elif st.session_state.etapa == 'gerando':
+            
+            # Mostrar progresso
+            with st.container():
+                st.markdown("<div class='progresso-requisicoes'>", unsafe_allow_html=True)
+                st.markdown("### 🔮 Conectando com as energias...")
+                
+                # Barra de progresso visual
+                if st.session_state.requisicao_atual == 0:
+                    st.markdown("**⏳ Preparando primeira parte da leitura...**")
+                    st.progress(0.33)
+                elif st.session_state.requisicao_atual == 1:
+                    st.markdown("**⏳ Aprofundando a interpretação...**")
+                    st.progress(0.66)
+                elif st.session_state.requisicao_atual == 2:
+                    st.markdown("**⏳ Finalizando com sabedoria e ações práticas...**")
+                    st.progress(0.99)
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Executar requisições sequenciais
+            if st.session_state.requisicao_atual == 0 and 'parte1' not in st.session_state.partes:
+                with st.spinner("Parte 1 de 3: Analisando sentimentos..."):
+                    parte1 = gerar_parte_1(st.session_state.cartas, st.session_state.pergunta, posicoes)
+                    st.session_state.partes['parte1'] = parte1
+                    st.session_state.requisicao_atual = 1
+                    time.sleep(1)  # Pausa para não sobrecarregar a API
+                    st.rerun()
+            
+            elif st.session_state.requisicao_atual == 1 and 'parte2' not in st.session_state.partes:
+                with st.spinner("Parte 2 de 3: Explorando desfecho e ciência..."):
+                    parte2 = gerar_parte_2(st.session_state.cartas, st.session_state.pergunta, posicoes)
+                    st.session_state.partes['parte2'] = parte2
+                    st.session_state.requisicao_atual = 2
+                    time.sleep(1)
+                    st.rerun()
+            
+            elif st.session_state.requisicao_atual == 2 and 'parte3' not in st.session_state.partes:
+                with st.spinner("Parte 3 de 3: Ações práticas e sabedoria final..."):
+                    parte3 = gerar_parte_3(st.session_state.cartas, st.session_state.pergunta, posicoes)
+                    st.session_state.partes['parte3'] = parte3
+                    
+                    # Combinar todas as partes
+                    resposta_completa = f"""
+# 🔮 O LIVRO DA SUA RELAÇÃO
+
+{st.session_state.partes['parte1']}
+
+{st.session_state.partes['parte2']}
+
+{st.session_state.partes['parte3']}
+"""
+                    
+                    # Dividir em seções
+                    st.session_state.secoes = dividir_resposta_em_secoes(resposta_completa)
+                    
+                    # Salvar no IndexedDB
+                    try:
+                        salvar_no_indexeddb('resposta_completa', resposta_completa)
+                    except:
+                        pass
+                    
+                    st.session_state.etapa = 'resultado'
+                    st.session_state.pagina_atual = 0
+                    st.rerun()
         
         # ETAPA 9: RESULTADO COM PAGINAÇÃO
         elif st.session_state.etapa == 'resultado':
@@ -745,7 +857,7 @@ def main():
                 
                 with col2:
                     if st.button("Nova consulta", use_container_width=True):
-                        for key in ['etapa', 'pergunta', 'cartas', 'resultado_completo', 'secoes', 'pagina_atual', 'carta_atual']:
+                        for key in ['etapa', 'pergunta', 'cartas', 'partes', 'secoes', 'pagina_atual', 'carta_atual', 'requisicao_atual']:
                             if key in st.session_state:
                                 del st.session_state[key]
                         st.rerun()
