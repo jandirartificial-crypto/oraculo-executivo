@@ -1,1 +1,129 @@
+/* assets/style.css */
 
+/* Estilos gerais */
+.stApp {
+    background-color: #FFFFFF;
+}
+
+.block-container {
+    max-width: 800px;
+    padding-top: 2rem;
+}
+
+/* Botões */
+.stButton button {
+    background: #000000 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 50px !important;
+    padding: 10px 30px !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.stButton button:hover {
+    background: #333333 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Text areas */
+.stTextArea textarea {
+    border-radius: 16px !important;
+    border: 2px solid #E9ECEF !important;
+    padding: 20px !important;
+    font-size: 18px !important;
+    resize: vertical;
+    min-height: 150px;
+    transition: border-color 0.3s ease;
+}
+
+.stTextArea textarea:focus {
+    border-color: #000000 !important;
+    box-shadow: none !important;
+}
+
+/* Abas */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 2px;
+    background-color: #F8F9FA;
+    border-radius: 50px;
+    padding: 4px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-weight: 500;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #000000 !important;
+    color: white !important;
+}
+
+/* Esconder elementos padrão */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Tipografia */
+h1 {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    color: #000000 !important;
+    font-weight: 600 !important;
+    margin-top: 2rem;
+}
+
+h3 {
+    color: #000000 !important;
+    font-weight: 500 !important;
+}
+
+/* Container de resultado */
+.resultado-container {
+    background: #F8F9FA;
+    border-radius: 24px;
+    padding: 40px 30px;
+    margin: 30px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    font-family: 'Georgia', serif;
+    line-height: 1.8;
+    color: #212529;
+}
+
+.resultado-container h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #000000;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 10px;
+}
+
+.resultado-container h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+.resultado-container p {
+    margin-bottom: 20px;
+}
+
+/* Rodapé */
+.footer-note {
+    text-align: center;
+    color: #6C757D;
+    font-size: 0.9rem;
+    margin-top: 3rem;
+}
