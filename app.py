@@ -1,12 +1,9 @@
 import streamlit as st
 import google.generativeai as genai
 from datetime import datetime
-import json
-import re
-import time
 
 # ============================================
-# CONFIGURAÇÃO INICIAL
+# CONFIGURAÇÃO INICIAL - MÍNIMA ABSOLUTA
 # ============================================
 st.set_page_config(
     page_title="Baralho Cigano",
@@ -23,13 +20,15 @@ except Exception as e:
     st.stop()
 
 # ============================================
-# CSS
+# CSS - ULTRA MÍNIMO
 # ============================================
 st.markdown("""
     <style>
+        /* Reset total */
         .stApp { background-color: #FFFFFF; }
-        .block-container { max-width: 800px; padding-top: 1rem; }
+        .block-container { max-width: 600px; padding-top: 1rem; }
         
+        /* Botão preto */
         .stButton button {
             background: #000000 !important;
             color: white !important;
@@ -40,12 +39,14 @@ st.markdown("""
             font-weight: 500;
         }
         
+        /* Campo de texto limpo */
         .stTextInput input {
             border-radius: 12px !important;
             border: 1px solid #DEE2E6 !important;
             padding: 12px !important;
         }
         
+        /* Área de pergunta */
         .stTextArea textarea {
             border-radius: 16px !important;
             border: 2px solid #E9ECEF !important;
@@ -54,61 +55,37 @@ st.markdown("""
             resize: none;
         }
         
+        /* Esconder tudo que não é necessário */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
+        /* Resultado em 5 linhas poéticas */
         .resultado {
-            font-size: 18px;
-            line-height: 1.8;
-            color: #212529;
-            text-align: left;
-            padding: 40px 30px;
-            background: #F8F9FA;
-            border-radius: 24px;
-            margin: 30px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            font-family: 'Georgia', serif;
-        }
-        
-        .resultado h2 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #000000;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            text-align: left;
-            border-bottom: 2px solid #000000;
-            padding-bottom: 10px;
-        }
-        
-        .resultado h3 {
             font-size: 20px;
-            font-weight: 600;
+            line-height: 1.8;
             color: #000000;
-            margin-top: 25px;
-            margin-bottom: 10px;
+            text-align: center;
+            padding: 40px 20px;
+            font-style: italic;
+            border-top: 1px solid #E9ECEF;
+            border-bottom: 1px solid #E9ECEF;
+            margin: 40px 0;
         }
         
-        .resultado p {
-            margin-bottom: 20px;
+        /* Título invisível */
+        h1 {
+            display: none !important;
         }
         
-        .progresso-cartas {
+        /* Texto de apoio */
+        .subtitulo {
             text-align: center;
             color: #6C757D;
             font-size: 14px;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-        }
-        
-        .instrucao-chat {
-            background: #F8F9FA;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: center;
-            border: 1px dashed #000000;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -278,152 +255,67 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
-# CLASSE DE CHAT CORRIGIDA
+# FUNÇÃO DE INTERPRETAÇÃO - 5 LINHAS POÉTICAS
 # ============================================
-class MentorChat:
-    def __init__(self):
-        # Usar o modelo correto para chat
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
-        self.chat = None
-        self.historico = []
-        
-    def iniciar_conversa(self, cartas, pergunta):
-        """Inicia a conversa com o contexto completo"""
-        
-        # Posições da tiragem Afrodite
-        posicoes = [
-            "Pensamentos e Intenções do consulente",
-            "Sentimentos do consulente pela companheira",
-            "Atração sexual, desejos e libido do consulente por ela",
-            "Pensamentos e Intenções da companheira",
-            "Sentimentos da companheira pelo consulente",
-            "Atração sexual, desejos e libido dela por ele",
-            "O desfecho: O que resultará dessa relação"
-        ]
+def interpretar_tiragem(cartas, pergunta_usuario):
+    """Gera uma interpretação poética de exatamente 5 linhas"""
+    try:
+        modelo = genai.GenerativeModel('gemini-pro')
         
         # Preparar dados das cartas
         cartas_descricao = []
-        for i, carta_info in enumerate(cartas):
+        for carta_info in cartas:
             carta = carta_info['carta']
             orientacao = carta_info['orientacao']
+            significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
+            
             cartas_descricao.append(
-                f"{i+1}. {posicoes[i]}: {carta['nome']} ({orientacao})"
+                f"{carta_info['posicao']}: {carta['nome']} ({orientacao})"
             )
         
-        cartas_texto = "\n".join(cartas_descricao)
+        prompt = f"""Você é um poeta e cartomante especialista em Baralho Cigano.
+
+Cartas: {cartas_descricao[0]}, {cartas_descricao[1]}, {cartas_descricao[2]}
+Pergunta: {pergunta_usuario if pergunta_usuario else 'a vida'}
+
+Escreva EXATAMENTE 5 linhas poéticas contendo:
+- 1 insight sobre o passado
+- 1 reflexão sobre o presente  
+- 1 movimento de ação para o futuro
+- Use metáforas e imagens poéticas
+- Não mencione os nomes das cartas explicitamente
+- Linguagem acolhedora e sábia
+
+5 LINHAS APENAS:"""
         
-        # Prompt inicial com a estrutura aprovada
-        prompt_inicial = f"""
-Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Você está iniciando uma conversa profunda com um consulente que busca orientação sobre seu relacionamento.
-
-## CONTEXTO COMPLETO DA CONSULTA:
-Pergunta do consulente: {pergunta if pergunta else "O que está acontecendo no meu relacionamento?"}
-
-## AS CARTAS TIRADAS (MÉTODO AFRODITE):
-{cartas_texto}
-
-## INSTRUÇÕES PARA A RESPOSTA:
-
-Escreva a PRIMEIRA PARTE da sua orientação, contendo APENAS estes tópicos:
-
-## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
-(Interpretação DETALHADA das cartas 1, 2 e 3)
-
-Para CADA carta:
-**Carta [Número] – [Nome da Carta]: [Posição]**
-- 3-4 parágrafos com interpretação profunda
-- Inclua o significado espiritual relacionado à situação atual do consulente
-- Termine com "O que isso significa na prática:" e uma aplicação direta
-
-## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
-(Interpretação DETALHADA das cartas 4, 5 e 6 - mesma estrutura acima)
-
-## PARA ONDE TUDO ISSO ESTÁ LEVANDO
-(Interpretação da carta 7 - o desfecho)
-- Pelo menos 4 parágrafos
-- Mostre tendências e possibilidades
-- Inclua o significado espiritual do desfecho
-- Termine com "O que isso significa na prática:"
-
-IMPORTANTE:
-- Esta é apenas a PARTE 1. Você vai parar aqui e aguardar o consulente pedir para continuar.
-- Use linguagem acolhedora e acessível
-- Conecte TUDO à pergunta específica do consulente
-- Seja direto, mas nunca cruel
-- A verdade pode doer, mas deve vir com acolhimento
-
-Seu tom deve ser de um mentor que caminha junto, não de um oráculo distante.
-"""
+        response = modelo.generate_content(prompt)
         
-        # CORREÇÃO: Iniciar o chat corretamente
-        self.chat = self.model.start_chat(history=[])
-        response = self.chat.send_message(prompt_inicial)
-        self.historico.append({"role": "mentor", "content": response.text})
-        return response.text
-    
-    def continuar_parte_2(self):
-        """Gera a segunda parte mantendo o contexto"""
-        prompt = """
-Ótimo. Agora, continuando a mesma conversa, escreva a SEGUNDA PARTE da sua orientação, contendo APENAS estes tópicos:
+        if response and response.text:
+            # Limitar a exatamente 5 linhas
+            linhas = response.text.strip().split('\n')[:5]
+            return '\n'.join(linhas)
+        else:
+            return gerar_fallback_poetico(cartas)
+            
+    except Exception as e:
+        return gerar_fallback_poetico(cartas)
 
-## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
-(6-8 fatos científicos diretos sobre relacionamentos)
-- Para CADA fato: um parágrafo explicativo aplicado à situação do consulente
-- Use linguagem acessível, não acadêmica
-- Exemplos: estresse crônico, desejo feminino, comunicação, hormônios, etc.
-
-## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
-(Reflexões sobre sabedoria ancestral aplicada à sua vida)
-
-IMPORTANTE: Ao falar sobre sabedoria ancestral:
-- NÃO use nomes de escolas filosóficas como títulos
-- Apresente APENAS a SABEDORIA prática, de forma genérica
-- Exemplo: "Uma sabedoria antiga nos lembra que existem coisas que dependem de nós e coisas que não dependem..."
-- Cada reflexão deve ter 2-3 parágrafos aplicados diretamente à situação do consulente
-
-Lembre-se de manter o MESMO TOM acolhedor e profundo da primeira parte, e conectar com o que já foi dito.
-"""
-        response = self.chat.send_message(prompt)
-        self.historico.append({"role": "mentor", "content": response.text})
-        return response.text
-    
-    def continuar_parte_3(self):
-        """Gera a terceira parte mantendo o contexto"""
-        prompt = """
-Agora, a TERCEIRA E ÚLTIMA PARTE da sua orientação, contendo APENAS estes tópicos:
-
-## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
-(6-8 ilusões comuns em relacionamentos)
-- Para CADA: "**Ilusão:** [frase entre aspas]" seguido de 2-3 parágrafos
-- Desmonte a ilusão com exemplos práticos e aplicados à situação
-- Mostre o que é realidade vs o que é projeção
-
-## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
-(10-12 ações práticas, numeradas)
-- Para CADA: um parágrafo explicativo detalhado
-- Como implementar no dia a dia
-- Exemplos específicos
-- O que esperar ao colocar em prática
-
-## PALAVRAS FINAIS
-(Um encerramento poderoso de 4-5 parágrafos)
-- Retome as cartas e a jornada
-- Ofereça esperança e direção
-- Reforce que a escolha é do consulente
-- Inclua uma mensagem espiritual de acolhimento
-
-Finalize com uma nota de que o mentor está disponível para novas reflexões, mas que agora a jornada é do consulente.
-"""
-        response = self.chat.send_message(prompt)
-        self.historico.append({"role": "mentor", "content": response.text})
-        return response.text
+def gerar_fallback_poetico(cartas):
+    """Fallback com 5 linhas poéticas"""
+    fallbacks = [
+        "O que passou teceu silêncios que hoje são raízes.",
+        "No presente, a árvore aprendeu a beber da própria sombra.",
+        "O movimento que esperas começa onde seus pés tocam o chão.",
+        "Não há vento contrário para quem sabe ajustar as velas.",
+        "Confia: o caminho se revela a cada passo dado."
+    ]
+    return '\n'.join(fallbacks)
 
 # ============================================
-# INTERFACE PRINCIPAL
+# INTERFACE - MÍNIMA ABSOLUTA
 # ============================================
 def main():
-    st.markdown("<h1 style='display: block; text-align: center; font-size: 24px; margin-bottom: 10px;'>🔮 BARALHO CIGANO</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #6C757D; margin-bottom: 30px;'>Método: Afrodite • 7 cartas para relacionamentos</p>", unsafe_allow_html=True)
+    # Sem título, sem ícone, apenas o fluxo
     
     # Inicialização do estado
     if 'etapa' not in st.session_state:
@@ -432,23 +324,8 @@ def main():
         st.session_state.pergunta = ""
     if 'cartas' not in st.session_state:
         st.session_state.cartas = []
-    if 'chat' not in st.session_state:
-        st.session_state.chat = None
-    if 'partes_recebidas' not in st.session_state:
-        st.session_state.partes_recebidas = []
-    if 'carta_atual' not in st.session_state:
-        st.session_state.carta_atual = 1
-    
-    # Posições para interface
-    posicoes_interface = [
-        "1ª carta — Pensamentos e Intenções (você)",
-        "2ª carta — Sentimentos (você)",
-        "3ª carta — Desejo sexual (você)",
-        "4ª carta — Pensamentos e Intenções (ela)",
-        "5ª carta — Sentimentos (ela)",
-        "6ª carta — Desejo sexual (ela)",
-        "7ª carta — O desfecho"
-    ]
+    if 'resultado' not in st.session_state:
+        st.session_state.resultado = None
     
     # Container central
     with st.container():
@@ -457,7 +334,7 @@ def main():
         if st.session_state.etapa == 'pergunta':
             pergunta = st.text_area(
                 " ",
-                placeholder="Qual sua pergunta sobre o relacionamento?",
+                placeholder="Qual sua pergunta?",
                 height=100,
                 key="pergunta_input",
                 label_visibility="collapsed"
@@ -468,24 +345,81 @@ def main():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            if st.button("Começar tiragem", use_container_width=True):
+            if st.button("Próximo", use_container_width=True):
                 if st.session_state.pergunta:
                     st.session_state.etapa = 'carta1'
                     st.rerun()
                 else:
                     st.warning("Digite sua pergunta")
         
-        # ETAPAS 2 a 8: SETE CARTAS
-        elif st.session_state.etapa.startswith('carta') and st.session_state.etapa != 'conversa':
-            carta_num = int(st.session_state.etapa.replace('carta', ''))
+        # ETAPA 2: PRIMEIRA CARTA - SEM SELECT
+        elif st.session_state.etapa == 'carta1':
+            st.markdown("**1ª carta — passado**")
             
-            st.markdown(f"**{posicoes_interface[carta_num-1]}**")
-            st.markdown(f"<div class='progresso-cartas'>Carta {carta_num} de 7</div>", unsafe_allow_html=True)
-            
-            carta_input = st.text_input(
+            carta1 = st.text_input(
                 " ",
                 placeholder="Ex: O Cavaleiro",
-                key=f"carta{carta_num}_input",
+                key="carta1_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("Próximo", use_container_width=True):
+                if carta1:
+                    valida, id_carta, carta = validar_carta(carta1)
+                    if valida:
+                        st.session_state.cartas = [{
+                            'carta': carta,
+                            'id': id_carta,
+                            'orientacao': 'normal',  # sempre normal
+                            'posicao': 'PASSADO'
+                        }]
+                        st.session_state.etapa = 'carta2'
+                        st.rerun()
+                    else:
+                        st.error("Carta não encontrada")
+                else:
+                    st.warning("Digite o nome da carta")
+        
+        # ETAPA 3: SEGUNDA CARTA - SEM SELECT
+        elif st.session_state.etapa == 'carta2':
+            st.markdown("**2ª carta — presente**")
+            
+            carta2 = st.text_input(
+                " ",
+                placeholder="Ex: A Casa",
+                key="carta2_input",
+                label_visibility="collapsed"
+            )
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("Próximo", use_container_width=True):
+                if carta2:
+                    valida, id_carta, carta = validar_carta(carta2)
+                    if valida:
+                        st.session_state.cartas.append({
+                            'carta': carta,
+                            'id': id_carta,
+                            'orientacao': 'normal',  # sempre normal
+                            'posicao': 'PRESENTE'
+                        })
+                        st.session_state.etapa = 'carta3'
+                        st.rerun()
+                    else:
+                        st.error("Carta não encontrada")
+                else:
+                    st.warning("Digite o nome da carta")
+        
+        # ETAPA 4: TERCEIRA CARTA - SEM SELECT
+        elif st.session_state.etapa == 'carta3':
+            st.markdown("**3ª carta — futuro**")
+            
+            carta3 = st.text_input(
+                " ",
+                placeholder="Ex: O Sol",
+                key="carta3_input",
                 label_visibility="collapsed"
             )
             
@@ -493,108 +427,46 @@ def main():
             
             col1, col2 = st.columns(2)
             with col1:
-                if carta_num > 1:
-                    if st.button("← Voltar", use_container_width=True):
-                        st.session_state.etapa = f'carta{carta_num-1}'
-                        st.rerun()
-            
+                if st.button("←", use_container_width=True):
+                    st.session_state.etapa = 'carta2'
+                    st.rerun()
             with col2:
-                if carta_num < 7:
-                    if st.button("Próximo", use_container_width=True):
-                        if carta_input:
-                            valida, id_carta, carta = validar_carta(carta_input)
-                            if valida:
-                                # Remover carta antiga se existir nesta posição
-                                st.session_state.cartas = [c for c in st.session_state.cartas if c.get('posicao_num') != carta_num]
-                                st.session_state.cartas.append({
-                                    'carta': carta,
-                                    'id': id_carta,
-                                    'orientacao': 'normal',
-                                    'posicao': posicoes_interface[carta_num-1],
-                                    'posicao_num': carta_num
-                                })
-                                st.session_state.cartas.sort(key=lambda x: x['posicao_num'])
-                                st.session_state.etapa = f'carta{carta_num+1}'
+                if st.button("Interpretar", use_container_width=True, type="primary"):
+                    if carta3:
+                        valida, id_carta, carta = validar_carta(carta3)
+                        if valida:
+                            st.session_state.cartas.append({
+                                'carta': carta,
+                                'id': id_carta,
+                                'orientacao': 'normal',  # sempre normal
+                                'posicao': 'FUTURO'
+                            })
+                            
+                            with st.spinner("..."):
+                                resultado = interpretar_tiragem(
+                                    st.session_state.cartas,
+                                    st.session_state.pergunta
+                                )
+                                st.session_state.resultado = resultado
+                                st.session_state.etapa = 'resultado'
                                 st.rerun()
-                            else:
-                                st.error("Carta não encontrada")
                         else:
-                            st.warning("Digite o nome da carta")
-                
-                else:  # Última carta (7)
-                    if st.button("Iniciar Leitura", use_container_width=True, type="primary"):
-                        if carta_input:
-                            valida, id_carta, carta = validar_carta(carta_input)
-                            if valida:
-                                # Remover carta antiga se existir na posição 7
-                                st.session_state.cartas = [c for c in st.session_state.cartas if c.get('posicao_num') != 7]
-                                st.session_state.cartas.append({
-                                    'carta': carta,
-                                    'id': id_carta,
-                                    'orientacao': 'normal',
-                                    'posicao': posicoes_interface[6],
-                                    'posicao_num': 7
-                                })
-                                st.session_state.cartas.sort(key=lambda x: x['posicao_num'])
-                                
-                                with st.spinner("🎭 Iniciando conversa com seu mentor..."):
-                                    chat = MentorChat()
-                                    primeira_parte = chat.iniciar_conversa(st.session_state.cartas, st.session_state.pergunta)
-                                    st.session_state.chat = chat
-                                    st.session_state.partes_recebidas = [primeira_parte]
-                                    st.session_state.etapa = 'conversa'
-                                    st.rerun()
-                            else:
-                                st.error("Carta não encontrada")
-                        else:
-                            st.warning("Digite o nome da carta")
+                            st.error("Carta não encontrada")
+                    else:
+                        st.warning("Digite o nome da carta")
         
-        # ETAPA 9: CONVERSA CONTÍNUA COM O MENTOR
-        elif st.session_state.etapa == 'conversa':
+        # ETAPA 5: RESULTADO - 5 LINHAS POÉTICAS
+        elif st.session_state.etapa == 'resultado':
+            if st.session_state.resultado:
+                st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
             
-            # Mostrar todas as partes já recebidas
-            if st.session_state.partes_recebidas:
-                for i, parte in enumerate(st.session_state.partes_recebidas):
-                    st.markdown(f'<div class="resultado">{parte}</div>', unsafe_allow_html=True)
-                    if i < len(st.session_state.partes_recebidas) - 1:
-                        st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
             
-            # Verificar se já temos todas as 3 partes
-            if len(st.session_state.partes_recebidas) < 3:
-                
-                # Instrução para continuar
-                st.markdown("""
-                <div class="instrucao-chat">
-                    <p>✨ O mentor fez uma pausa para que você absorva estas palavras.</p>
-                    <p>Quando estiver pronto para continuar, clique no botão abaixo.</p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Botão para próxima parte
-                if st.button("Continuar leitura →", use_container_width=True, type="primary"):
-                    with st.spinner("O mentor está refletindo mais profundamente..."):
-                        
-                        if len(st.session_state.partes_recebidas) == 1:
-                            # Segunda parte
-                            nova_parte = st.session_state.chat.continuar_parte_2()
-                        else:
-                            # Terceira parte
-                            nova_parte = st.session_state.chat.continuar_parte_3()
-                        
-                        st.session_state.partes_recebidas.append(nova_parte)
-                        st.rerun()
-            
-            else:
-                # Todas as partes foram recebidas - oferecer nova consulta
-                st.markdown("---")
-                col1, col2, col3 = st.columns([1, 2, 1])
-                with col2:
-                    if st.button("🔄 Nova consulta", use_container_width=True):
-                        # Limpar session state
-                        for key in ['etapa', 'pergunta', 'cartas', 'chat', 'partes_recebidas', 'carta_atual']:
-                            if key in st.session_state:
-                                del st.session_state[key]
-                        st.rerun()
+            if st.button("Nova consulta", use_container_width=True):
+                for key in ['etapa', 'pergunta', 'cartas', 'resultado']:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.rerun()
 
 if __name__ == "__main__":
     main()
