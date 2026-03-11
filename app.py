@@ -278,11 +278,12 @@ def validar_carta(nome_carta):
     return False, None, None
 
 # ============================================
-# CLASSE DE CHAT PARA MANTER CONTEXTO
+# CLASSE DE CHAT CORRIGIDA
 # ============================================
 class MentorChat:
     def __init__(self):
-        self.model = genai.GenerativeModel('gemini-pro')
+        # Usar o modelo correto para chat
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
         self.chat = None
         self.historico = []
         
@@ -354,6 +355,7 @@ IMPORTANTE:
 Seu tom deve ser de um mentor que caminha junto, não de um oráculo distante.
 """
         
+        # CORREÇÃO: Iniciar o chat corretamente
         self.chat = self.model.start_chat(history=[])
         response = self.chat.send_message(prompt_inicial)
         self.historico.append({"role": "mentor", "content": response.text})
@@ -373,14 +375,11 @@ Seu tom deve ser de um mentor que caminha junto, não de um oráculo distante.
 ## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
 (Reflexões sobre sabedoria ancestral aplicada à sua vida)
 
-IMPORTANTE: Ao falar sobre Estoicismo, Budismo, Sikhismo, Existencialismo:
-- NÃO use os nomes das escolas como títulos
-- NÃO assuma que o consulente conhece ou concorda com estas doutrinas
-- Apresente APENAS a SABEDORIA prática contida nelas, de forma genérica
-- Exemplo: em vez de "O Estoicismo ensina...", use "Uma sabedoria antiga nos lembra que existem coisas que dependem de nós e coisas que não dependem..."
-- Exemplo: em vez de "O Budismo diz...", use "Há um ensinamento profundo sobre a impermanência de todas as coisas..."
-
-Cada reflexão deve ter 2-3 parágrafos aplicados diretamente à situação do consulente.
+IMPORTANTE: Ao falar sobre sabedoria ancestral:
+- NÃO use nomes de escolas filosóficas como títulos
+- Apresente APENAS a SABEDORIA prática, de forma genérica
+- Exemplo: "Uma sabedoria antiga nos lembra que existem coisas que dependem de nós e coisas que não dependem..."
+- Cada reflexão deve ter 2-3 parágrafos aplicados diretamente à situação do consulente
 
 Lembre-se de manter o MESMO TOM acolhedor e profundo da primeira parte, e conectar com o que já foi dito.
 """
@@ -414,8 +413,6 @@ Agora, a TERCEIRA E ÚLTIMA PARTE da sua orientação, contendo APENAS estes tó
 - Inclua uma mensagem espiritual de acolhimento
 
 Finalize com uma nota de que o mentor está disponível para novas reflexões, mas que agora a jornada é do consulente.
-
-Lembre-se de manter o tom acolhedor e prático de toda a conversa.
 """
         response = self.chat.send_message(prompt)
         self.historico.append({"role": "mentor", "content": response.text})
@@ -507,6 +504,7 @@ def main():
                         if carta_input:
                             valida, id_carta, carta = validar_carta(carta_input)
                             if valida:
+                                # Remover carta antiga se existir nesta posição
                                 st.session_state.cartas = [c for c in st.session_state.cartas if c.get('posicao_num') != carta_num]
                                 st.session_state.cartas.append({
                                     'carta': carta,
@@ -528,6 +526,7 @@ def main():
                         if carta_input:
                             valida, id_carta, carta = validar_carta(carta_input)
                             if valida:
+                                # Remover carta antiga se existir na posição 7
                                 st.session_state.cartas = [c for c in st.session_state.cartas if c.get('posicao_num') != 7]
                                 st.session_state.cartas.append({
                                     'carta': carta,
@@ -591,6 +590,7 @@ def main():
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
                     if st.button("🔄 Nova consulta", use_container_width=True):
+                        # Limpar session state
                         for key in ['etapa', 'pergunta', 'cartas', 'chat', 'partes_recebidas', 'carta_atual']:
                             if key in st.session_state:
                                 del st.session_state[key]
