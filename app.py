@@ -3,10 +3,10 @@ import google.generativeai as genai
 from datetime import datetime
 
 # ============================================
-# CONFIGURAÇÃO INICIAL - MÍNIMA ABSOLUTA
+# CONFIGURAÇÃO INICIAL
 # ============================================
 st.set_page_config(
-    page_title="Baralho Cigano",
+    page_title="Baralho Cigano - Método Afrodite",
     page_icon="🃏",
     layout="centered"
 )
@@ -20,15 +20,13 @@ except Exception as e:
     st.stop()
 
 # ============================================
-# CSS - ULTRA MÍNIMO
+# CSS - DESIGN LIMPO
 # ============================================
 st.markdown("""
     <style>
-        /* Reset total */
         .stApp { background-color: #FFFFFF; }
-        .block-container { max-width: 600px; padding-top: 1rem; }
+        .block-container { max-width: 700px; padding-top: 2rem; }
         
-        /* Botão preto */
         .stButton button {
             background: #000000 !important;
             color: white !important;
@@ -39,14 +37,11 @@ st.markdown("""
             font-weight: 500;
         }
         
-        /* Campo de texto limpo */
-        .stTextInput input {
+        .stSelectbox div {
             border-radius: 12px !important;
             border: 1px solid #DEE2E6 !important;
-            padding: 12px !important;
         }
         
-        /* Área de pergunta */
         .stTextArea textarea {
             border-radius: 16px !important;
             border: 2px solid #E9ECEF !important;
@@ -55,37 +50,58 @@ st.markdown("""
             resize: none;
         }
         
-        /* Esconder tudo que não é necessário */
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
         
-        /* Resultado em 5 linhas poéticas */
         .resultado {
-            font-size: 20px;
+            font-size: 18px;
             line-height: 1.8;
+            color: #212529;
+            text-align: left;
+            padding: 40px 30px;
+            background: #F8F9FA;
+            border-radius: 24px;
+            margin: 30px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            font-family: 'Georgia', serif;
+        }
+        
+        .resultado h2 {
+            font-size: 24px;
+            font-weight: 600;
             color: #000000;
-            text-align: center;
-            padding: 40px 20px;
-            font-style: italic;
-            border-top: 1px solid #E9ECEF;
-            border-bottom: 1px solid #E9ECEF;
-            margin: 40px 0;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 10px;
         }
         
-        /* Título invisível */
+        .resultado h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000000;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        .resultado p {
+            margin-bottom: 20px;
+        }
+        
+        .instrucao-chat {
+            background: #F8F9FA;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px dashed #000000;
+        }
+        
         h1 {
-            display: none !important;
-        }
-        
-        /* Texto de apoio */
-        .subtitulo {
+            color: #000000 !important;
+            font-weight: 700 !important;
             text-align: center;
-            color: #6C757D;
-            font-size: 14px;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -205,137 +221,184 @@ BARALHO_CIGANO = {
 }
 
 # ============================================
-# FUNÇÕES DE BUSCA
+# LISTA DE NOMES PARA SELECT
 # ============================================
-def buscar_carta_por_nome(nome_busca):
-    nome_busca = nome_busca.strip().lower()
-    
-    variacoes = {
-        "cavaleiro": "O Cavaleiro", "cavalo": "O Cavaleiro",
-        "trevo": "O Trevo", "navio": "O Navio", "barco": "O Navio",
-        "casa": "A Casa", "arvore": "A Árvore", "árvore": "A Árvore",
-        "nuvens": "As Nuvens", "nuvem": "As Nuvens",
-        "serpente": "A Serpente", "cobra": "A Serpente",
-        "caixao": "O Caixão", "caixão": "O Caixão",
-        "buque": "O Buquê", "buquê": "O Buquê", "flores": "O Buquê",
-        "foice": "A Foice", "chicote": "O Chicote",
-        "passaros": "Os Pássaros", "pássaros": "Os Pássaros", "passaro": "Os Pássaros",
-        "crianca": "A Criança", "criança": "A Criança",
-        "raposa": "A Raposa", "urso": "O Urso",
-        "estrelas": "As Estrelas", "cegonha": "A Cegonha",
-        "cachorro": "O Cachorro", "cao": "O Cachorro", "cão": "O Cachorro",
-        "torre": "A Torre", "jardim": "O Jardim",
-        "montanha": "A Montanha", "caminho": "O Caminho",
-        "rato": "O Rato", "coracao": "O Coração", "coração": "O Coração",
-        "alianca": "A Aliança", "aliança": "A Aliança",
-        "livro": "O Livro", "carta": "A Carta",
-        "homem": "O Homem", "mulher": "A Mulher",
-        "lirios": "Os Lírios", "lírios": "Os Lírios",
-        "sol": "O Sol", "lua": "A Lua", "chave": "A Chave",
-        "peixe": "O Peixe", "ancora": "A Âncora", "âncora": "A Âncora",
-        "cruz": "A Cruz"
-    }
-    
-    if nome_busca in variacoes:
-        nome_correto = variacoes[nome_busca]
-        for id, carta in BARALHO_CIGANO.items():
-            if carta["nome"].lower() == nome_correto.lower():
-                return id, carta
-    
-    for id, carta in BARALHO_CIGANO.items():
-        if carta["nome"].lower() == nome_busca or nome_busca in carta["nome"].lower():
-            return id, carta
-    
-    return None, None
+LISTA_CARTAS = [""] + [carta["nome"] for carta in BARALHO_CIGANO.values()]
 
-def validar_carta(nome_carta):
-    id, carta = buscar_carta_por_nome(nome_carta)
-    if carta:
-        return True, id, carta
-    return False, None, None
+# Posições da tiragem Afrodite
+POSICOES_AFRODITE = [
+    "1ª carta — Pensamentos e Intenções (você)",
+    "2ª carta — Sentimentos (você)",
+    "3ª carta — Desejo sexual (você)",
+    "4ª carta — Pensamentos e Intenções (ela)",
+    "5ª carta — Sentimentos (ela)",
+    "6ª carta — Desejo sexual (ela)",
+    "7ª carta — O desfecho"
+]
 
 # ============================================
-# FUNÇÃO DE INTERPRETAÇÃO - 5 LINHAS POÉTICAS
+# FUNÇÃO DE INTERPRETAÇÃO - MÉTODO AFRODITE
 # ============================================
-def interpretar_tiragem(cartas, pergunta_usuario):
-    """Gera uma interpretação poética de exatamente 5 linhas"""
+def interpretar_tiragem_afrodite(cartas, pergunta_usuario):
+    """Gera uma interpretação completa para as 7 cartas do método Afrodite"""
     try:
-        modelo = genai.GenerativeModel('gemini-pro')
+        modelo = genai.GenerativeModel('gemini-1.5-flash')
         
         # Preparar dados das cartas
         cartas_descricao = []
-        for carta_info in cartas:
-            carta = carta_info['carta']
-            orientacao = carta_info['orientacao']
-            significado = carta['significado_invertido'] if orientacao == 'invertida' else carta['significado_normal']
+        for i, carta_info in enumerate(cartas):
+            carta_nome = carta_info['carta']['nome'] if isinstance(carta_info['carta'], dict) else carta_info['carta']
+            # Buscar a carta completa
+            carta_completa = None
+            for c in BARALHO_CIGANO.values():
+                if c["nome"] == carta_nome:
+                    carta_completa = c
+                    break
             
-            cartas_descricao.append(
-                f"{carta_info['posicao']}: {carta['nome']} ({orientacao})"
-            )
+            if carta_completa:
+                significado = carta_completa['significado_normal']  # sempre normal
+                cartas_descricao.append(
+                    f"{i+1}. {POSICOES_AFRODITE[i]}: {carta_nome}"
+                )
         
-        prompt = f"""Você é um poeta e cartomante especialista em Baralho Cigano.
+        cartas_texto = "\n".join(cartas_descricao)
+        
+        prompt = f"""
+Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Um consulente busca orientação sobre seu relacionamento através do método Afrodite (7 cartas).
 
-Cartas: {cartas_descricao[0]}, {cartas_descricao[1]}, {cartas_descricao[2]}
-Pergunta: {pergunta_usuario if pergunta_usuario else 'a vida'}
+## PERGUNTA DO CONSULENTE:
+{pergunta_usuario if pergunta_usuario else "O que está acontecendo no meu relacionamento?"}
 
-Escreva EXATAMENTE 5 linhas poéticas contendo:
-- 1 insight sobre o passado
-- 1 reflexão sobre o presente  
-- 1 movimento de ação para o futuro
-- Use metáforas e imagens poéticas
-- Não mencione os nomes das cartas explicitamente
-- Linguagem acolhedora e sábia
+## CARTAS TIRADAS:
+{cartas_texto}
 
-5 LINHAS APENAS:"""
+## INSTRUÇÕES:
+
+Escreva uma interpretação completa seguindo APENAS esta estrutura:
+
+## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
+(Interpretação das cartas 1, 2 e 3)
+
+Para CADA carta:
+**Carta [Número] – [Nome da Carta]**
+- 2-3 parágrafos com interpretação profunda
+- Inclua o significado espiritual relacionado à situação
+- Termine com "O que isso significa na prática:" e uma aplicação direta
+
+## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
+(Interpretação das cartas 4, 5 e 6 - mesma estrutura acima)
+
+## PARA ONDE TUDO ISSO ESTÁ LEVANDO
+(Interpretação da carta 7 - o desfecho)
+- 3-4 parágrafos mostrando tendências e possibilidades
+- Termine com "O que isso significa na prática:"
+
+## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
+(4-6 fatos científicos sobre relacionamentos aplicados à situação)
+
+## SABEDORIA ANCESTRAL PARA O SEU MOMENTO
+(Reflexões sobre sabedoria ancestral aplicada à sua vida - use linguagem genérica, sem nomes de escolas filosóficas)
+
+## ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
+(4-6 ilusões comuns, cada uma com explicação)
+
+## AÇÕES QUE VOCÊ PODE TOMAR AGORA
+(8-10 ações práticas, numeradas, com explicação)
+
+## PALAVRAS FINAIS
+(Um encerramento acolhedor de 3-4 parágrafos)
+
+IMPORTANTE:
+- Use linguagem acolhedora e acessível
+- Conecte TUDO à pergunta do consulente
+- Seja direto, mas nunca cruel
+- A verdade pode doer, mas deve vir com acolhimento
+"""
         
         response = modelo.generate_content(prompt)
         
         if response and response.text:
-            # Limitar a exatamente 5 linhas
-            linhas = response.text.strip().split('\n')[:5]
-            return '\n'.join(linhas)
+            return response.text
         else:
-            return gerar_fallback_poetico(cartas)
+            return gerar_fallback_afrodite(cartas, pergunta_usuario)
             
     except Exception as e:
-        return gerar_fallback_poetico(cartas)
+        return gerar_fallback_afrodite(cartas, pergunta_usuario)
 
-def gerar_fallback_poetico(cartas):
-    """Fallback com 5 linhas poéticas"""
-    fallbacks = [
-        "O que passou teceu silêncios que hoje são raízes.",
-        "No presente, a árvore aprendeu a beber da própria sombra.",
-        "O movimento que esperas começa onde seus pés tocam o chão.",
-        "Não há vento contrário para quem sabe ajustar as velas.",
-        "Confia: o caminho se revela a cada passo dado."
-    ]
-    return '\n'.join(fallbacks)
+def gerar_fallback_afrodite(cartas, pergunta):
+    """Fallback para quando a API falha"""
+    
+    nomes = [c['carta']['nome'] if isinstance(c['carta'], dict) else c['carta'] for c in cartas]
+    
+    return f"""
+## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
+
+**Carta 1 – {nomes[0]}**
+Esta carta revela o estado da sua mente neste momento. Você está processando a situação com intensidade, buscando respostas e direção. O que isso significa na prática: seus pensamentos estão acelerados, mas isso pode ser um chamado para desacelerar e observar.
+
+**Carta 2 – {nomes[1]}**
+Aqui está a verdade do seu coração. Seus sentimentos são genuínos, mesmo com todas as dificuldades. O que isso significa na prática: o amor ainda existe, mas precisa ser nutrido de forma diferente.
+
+**Carta 3 – {nomes[2]}**
+Seu desejo e energia vital estão presentes, mas talvez bloqueados por mágoas ou desconfiança. O que isso significa na prática: a intimidade precisa ser reconstruída com paciência.
+
+## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
+
+**Carta 4 – {nomes[3]}**
+A mente dela pode estar em modo de defesa, processando mágoas antigas. O que isso significa na prática: ela precisa se sentir segura antes de qualquer aproximação.
+
+**Carta 5 – {nomes[4]}**
+Os sentimentos dela por você ainda existem, mas podem estar encobertos por camadas de dor. O que isso significa na prática: há esperança, mas é preciso criar condições para que ela se sinta à vontade.
+
+**Carta 6 – {nomes[5]}**
+O desejo dela pode estar adormecido, esperando um ambiente mais seguro para despertar. O que isso significa na prática: não force a intimidade, construa conexão primeiro.
+
+## PARA ONDE TUDO ISSO ESTÁ LEVANDO
+
+**Carta 7 – {nomes[6]}**
+O desfecho aponta para a necessidade de movimento consciente. O que isso significa na prática: o resultado depende das escolhas que vocês fizerem a partir de agora.
+
+## AÇÕES QUE VOCÊ PODE TOMAR AGORA
+
+1. **Desacelere**: Estabeleça um período sem conversas pesadas sobre a relação.
+2. **Observe sem reagir**: Apenas note os padrões sem tentar corrigir.
+3. **Crie segurança**: Seja consistente e previsível em suas ações.
+4. **Pratique escuta ativa**: Ouça sem rebater ou justificar.
+5. **Estabeleça rituais mínimos**: Momentos curtos de presença sem pressão.
+6. **Cuide de si mesmo**: Sua energia afeta diretamente a relação.
+7. **Defina um marco**: Estabeleça um prazo para reavaliar a situação.
+
+## PALAVRAS FINAIS
+
+O que as cartas revelam é um convite à consciência. Não há respostas prontas, mas há caminhos que podem ser construídos. A escolha é sua, e isso é libertador.
+"""
 
 # ============================================
-# INTERFACE - MÍNIMA ABSOLUTA
+# INTERFACE PRINCIPAL
 # ============================================
 def main():
-    # Sem título, sem ícone, apenas o fluxo
+    st.markdown("<h1>🔮 BARALHO CIGANO</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #6C757D; margin-bottom: 30px;'>Método: Afrodite • 7 cartas para relacionamentos</p>", unsafe_allow_html=True)
     
     # Inicialização do estado
     if 'etapa' not in st.session_state:
         st.session_state.etapa = 'pergunta'
     if 'pergunta' not in st.session_state:
         st.session_state.pergunta = ""
-    if 'cartas' not in st.session_state:
-        st.session_state.cartas = []
+    if 'cartas_selecionadas' not in st.session_state:
+        st.session_state.cartas_selecionadas = [""] * 7
     if 'resultado' not in st.session_state:
         st.session_state.resultado = None
     
     # Container central
     with st.container():
         
-        # ETAPA 1: APENAS PERGUNTA
+        # ETAPA 1: PERGUNTA
         if st.session_state.etapa == 'pergunta':
             pergunta = st.text_area(
                 " ",
-                placeholder="Qual sua pergunta?",
-                height=100,
+                placeholder="Qual sua pergunta sobre o relacionamento?",
+                height=120,
                 key="pergunta_input",
                 label_visibility="collapsed"
             )
@@ -345,128 +408,100 @@ def main():
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            if st.button("Próximo", use_container_width=True):
+            if st.button("Continuar", use_container_width=True):
                 if st.session_state.pergunta:
-                    st.session_state.etapa = 'carta1'
+                    st.session_state.etapa = 'cartas'
                     st.rerun()
                 else:
                     st.warning("Digite sua pergunta")
         
-        # ETAPA 2: PRIMEIRA CARTA - SEM SELECT
-        elif st.session_state.etapa == 'carta1':
-            st.markdown("**1ª carta — passado**")
+        # ETAPA 2: SELEÇÃO DAS 7 CARTAS
+        elif st.session_state.etapa == 'cartas':
+            st.markdown("### Selecione as 7 cartas da sua tiragem")
             
-            carta1 = st.text_input(
-                " ",
-                placeholder="Ex: O Cavaleiro",
-                key="carta1_input",
-                label_visibility="collapsed"
-            )
+            # Criar selects para cada posição
+            cartas_atualizadas = []
+            todas_validas = True
             
-            st.markdown("<br>", unsafe_allow_html=True)
+            for i, posicao in enumerate(POSICOES_AFRODITE):
+                st.markdown(f"**{posicao}**")
+                
+                # Select para a carta
+                carta_selecionada = st.selectbox(
+                    f"Carta {i+1}",
+                    options=LISTA_CARTAS,
+                    key=f"carta_{i}",
+                    index=LISTA_CARTAS.index(st.session_state.cartas_selecionadas[i]) if st.session_state.cartas_selecionadas[i] in LISTA_CARTAS else 0,
+                    label_visibility="collapsed"
+                )
+                
+                cartas_atualizadas.append(carta_selecionada)
+                
+                if not carta_selecionada:
+                    todas_validas = False
+                
+                st.markdown("---")
             
-            if st.button("Próximo", use_container_width=True):
-                if carta1:
-                    valida, id_carta, carta = validar_carta(carta1)
-                    if valida:
-                        st.session_state.cartas = [{
-                            'carta': carta,
-                            'id': id_carta,
-                            'orientacao': 'normal',  # sempre normal
-                            'posicao': 'PASSADO'
-                        }]
-                        st.session_state.etapa = 'carta2'
-                        st.rerun()
-                    else:
-                        st.error("Carta não encontrada")
-                else:
-                    st.warning("Digite o nome da carta")
-        
-        # ETAPA 3: SEGUNDA CARTA - SEM SELECT
-        elif st.session_state.etapa == 'carta2':
-            st.markdown("**2ª carta — presente**")
+            # Atualizar session state
+            st.session_state.cartas_selecionadas = cartas_atualizadas
             
-            carta2 = st.text_input(
-                " ",
-                placeholder="Ex: A Casa",
-                key="carta2_input",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            if st.button("Próximo", use_container_width=True):
-                if carta2:
-                    valida, id_carta, carta = validar_carta(carta2)
-                    if valida:
-                        st.session_state.cartas.append({
-                            'carta': carta,
-                            'id': id_carta,
-                            'orientacao': 'normal',  # sempre normal
-                            'posicao': 'PRESENTE'
-                        })
-                        st.session_state.etapa = 'carta3'
-                        st.rerun()
-                    else:
-                        st.error("Carta não encontrada")
-                else:
-                    st.warning("Digite o nome da carta")
-        
-        # ETAPA 4: TERCEIRA CARTA - SEM SELECT
-        elif st.session_state.etapa == 'carta3':
-            st.markdown("**3ª carta — futuro**")
-            
-            carta3 = st.text_input(
-                " ",
-                placeholder="Ex: O Sol",
-                key="carta3_input",
-                label_visibility="collapsed"
-            )
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
+            # Botões de navegação
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("←", use_container_width=True):
-                    st.session_state.etapa = 'carta2'
+                if st.button("← Voltar", use_container_width=True):
+                    st.session_state.etapa = 'pergunta'
                     st.rerun()
+            
             with col2:
                 if st.button("Interpretar", use_container_width=True, type="primary"):
-                    if carta3:
-                        valida, id_carta, carta = validar_carta(carta3)
-                        if valida:
-                            st.session_state.cartas.append({
-                                'carta': carta,
-                                'id': id_carta,
-                                'orientacao': 'normal',  # sempre normal
-                                'posicao': 'FUTURO'
-                            })
+                    if todas_validas:
+                        with st.spinner("🔮 Interpretando sua história..."):
+                            # Preparar cartas para interpretação
+                            cartas_para_interpretar = []
+                            for i, nome_carta in enumerate(st.session_state.cartas_selecionadas):
+                                # Encontrar a carta completa
+                                carta_completa = None
+                                for c in BARALHO_CIGANO.values():
+                                    if c["nome"] == nome_carta:
+                                        carta_completa = c
+                                        break
+                                
+                                if carta_completa:
+                                    cartas_para_interpretar.append({
+                                        'carta': carta_completa,
+                                        'posicao': POSICOES_AFRODITE[i]
+                                    })
                             
-                            with st.spinner("..."):
-                                resultado = interpretar_tiragem(
-                                    st.session_state.cartas,
-                                    st.session_state.pergunta
-                                )
-                                st.session_state.resultado = resultado
-                                st.session_state.etapa = 'resultado'
-                                st.rerun()
-                        else:
-                            st.error("Carta não encontrada")
+                            resultado = interpretar_tiragem_afrodite(
+                                cartas_para_interpretar,
+                                st.session_state.pergunta
+                            )
+                            st.session_state.resultado = resultado
+                            st.session_state.etapa = 'resultado'
+                            st.rerun()
                     else:
-                        st.warning("Digite o nome da carta")
+                        st.warning("Selecione todas as 7 cartas")
         
-        # ETAPA 5: RESULTADO - 5 LINHAS POÉTICAS
+        # ETAPA 3: RESULTADO
         elif st.session_state.etapa == 'resultado':
             if st.session_state.resultado:
                 st.markdown(f'<div class="resultado">{st.session_state.resultado}</div>', unsafe_allow_html=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             
-            if st.button("Nova consulta", use_container_width=True):
-                for key in ['etapa', 'pergunta', 'cartas', 'resultado']:
-                    if key in st.session_state:
-                        del st.session_state[key]
-                st.rerun()
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("← Nova pergunta", use_container_width=True):
+                    for key in ['etapa', 'pergunta', 'cartas_selecionadas', 'resultado']:
+                        if key in st.session_state:
+                            del st.session_state[key]
+                    st.rerun()
+            with col2:
+                if st.button("🔄 Nova tiragem", use_container_width=True):
+                    st.session_state.cartas_selecionadas = [""] * 7
+                    st.session_state.resultado = None
+                    st.session_state.etapa = 'cartas'
+                    st.rerun()
 
 if __name__ == "__main__":
     main()
