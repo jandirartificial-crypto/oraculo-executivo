@@ -71,58 +71,27 @@ st.markdown("""
             font-family: 'Georgia', serif;
         }
         
-        .resultado h1 {
-            display: block;
-            font-size: 28px;
-            font-weight: 700;
+        .resultado h2 {
+            font-size: 24px;
+            font-weight: 600;
             color: #000000;
-            margin-top: 0;
+            margin-top: 40px;
             margin-bottom: 20px;
             text-align: left;
             border-bottom: 2px solid #000000;
             padding-bottom: 10px;
         }
         
-        .resultado h2 {
-            font-size: 24px;
-            font-weight: 600;
-            color: #000000;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-        
         .resultado h3 {
             font-size: 20px;
             font-weight: 600;
             color: #000000;
-            margin-top: 0;
+            margin-top: 25px;
             margin-bottom: 10px;
         }
         
         .resultado p {
             margin-bottom: 20px;
-        }
-        
-        .chat-message {
-            background: #FFFFFF;
-            border: 1px solid #DEE2E6;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 10px 0;
-        }
-        
-        .mentor-message {
-            border-left: 4px solid #000000;
-        }
-        
-        .pagination-info {
-            text-align: center;
-            color: #6C757D;
-            font-size: 14px;
-            margin: 20px 0;
-            padding: 10px;
-            border-top: 1px solid #DEE2E6;
-            border-bottom: 1px solid #DEE2E6;
         }
         
         .progresso-cartas {
@@ -342,7 +311,7 @@ class MentorChat:
         
         cartas_texto = "\n".join(cartas_descricao)
         
-        # Prompt inicial com todo o contexto
+        # Prompt inicial com a estrutura aprovada
         prompt_inicial = f"""
 Você é um mentor espiritual sábio e acolhedor, especialista em Baralho Cigano. Você está iniciando uma conversa profunda com um consulente que busca orientação sobre seu relacionamento.
 
@@ -352,27 +321,35 @@ Pergunta do consulente: {pergunta if pergunta else "O que está acontecendo no m
 ## AS CARTAS TIRADAS (MÉTODO AFRODITE):
 {cartas_texto}
 
-## INSTRUÇÕES PARA A CONVERSA:
+## INSTRUÇÕES PARA A RESPOSTA:
 
-Esta será uma conversa em 3 partes. Você deve:
-1. LEMBRAR de todo este contexto durante TODA a conversa
-2. Manter o mesmo tom acolhedor e profundo em todas as respostas
-3. Conectar cada parte com a anterior
-4. Garantir que a resposta final seja completa e coesa
-
-### PRIMEIRA RESPOSTA (agora):
-Escreva a PRIMEIRA PARTE da sua orientação, contendo:
-
-## CARTA AO CONSULENTE
-(Um parágrafo longo e acolhedor)
+Escreva a PRIMEIRA PARTE da sua orientação, contendo APENAS estes tópicos:
 
 ## O QUE SE PASSA NA SUA MENTE E NO SEU CORAÇÃO
-(Interpretação DETALHADA das cartas 1, 2 e 3. Para CADA carta: 3-4 parágrafos com interpretação simbólica, significado comportamental, e sempre termine com "O que isso significa na prática:")
+(Interpretação DETALHADA das cartas 1, 2 e 3)
+
+Para CADA carta:
+**Carta [Número] – [Nome da Carta]: [Posição]**
+- 3-4 parágrafos com interpretação profunda
+- Inclua o significado espiritual relacionado à situação atual do consulente
+- Termine com "O que isso significa na prática:" e uma aplicação direta
 
 ## O QUE SE PASSA NA MENTE E NO CORAÇÃO DELA
-(Interpretação DETALHADA das cartas 4, 5 e 6. Mesma estrutura acima.)
+(Interpretação DETALHADA das cartas 4, 5 e 6 - mesma estrutura acima)
 
-IMPORTANTE: Esta é apenas a PARTE 1. Você vai parar aqui e aguardar o consulente pedir para continuar. Mas já tenha em mente que na PARTE 2 você falará sobre o desfecho, o diálogo entre as cartas e a ciência, e na PARTE 3 sobre filosofia, ilusões e ações práticas.
+## PARA ONDE TUDO ISSO ESTÁ LEVANDO
+(Interpretação da carta 7 - o desfecho)
+- Pelo menos 4 parágrafos
+- Mostre tendências e possibilidades
+- Inclua o significado espiritual do desfecho
+- Termine com "O que isso significa na prática:"
+
+IMPORTANTE:
+- Esta é apenas a PARTE 1. Você vai parar aqui e aguardar o consulente pedir para continuar.
+- Use linguagem acolhedora e acessível
+- Conecte TUDO à pergunta específica do consulente
+- Seja direto, mas nunca cruel
+- A verdade pode doer, mas deve vir com acolhimento
 
 Seu tom deve ser de um mentor que caminha junto, não de um oráculo distante.
 """
@@ -385,16 +362,25 @@ Seu tom deve ser de um mentor que caminha junto, não de um oráculo distante.
     def continuar_parte_2(self):
         """Gera a segunda parte mantendo o contexto"""
         prompt = """
-Ótimo. Agora, continuando a mesma conversa, escreva a SEGUNDA PARTE da sua orientação, contendo:
-
-## PARA ONDE TUDO ISSO ESTÁ LEVANDO
-(Interpretação da carta 7 - o desfecho. Pelo menos 4 parágrafos, mostrando tendências e possibilidades. Inclua "O que isso significa na prática:")
-
-## O DIÁLOGO SILENCIOSO ENTRE AS CARTAS
-(Análise profunda das interações entre as cartas. Mínimo de 6 parágrafos. Mostre: o que está em sincronia, o que está em desencontro, o que cada um está projetando no outro, como as energias se complementam ou se chocam.)
+Ótimo. Agora, continuando a mesma conversa, escreva a SEGUNDA PARTE da sua orientação, contendo APENAS estes tópicos:
 
 ## O QUE A CIÊNCIA DIZ SOBRE O QUE VOCÊ ESTÁ VIVENDO
-(6-8 fatos científicos diretos sobre relacionamentos, neurociência do amor, estresse, desejo, comunicação. Cada fato com um parágrafo explicativo e aplicado à situação.)
+(6-8 fatos científicos diretos sobre relacionamentos)
+- Para CADA fato: um parágrafo explicativo aplicado à situação do consulente
+- Use linguagem acessível, não acadêmica
+- Exemplos: estresse crônico, desejo feminino, comunicação, hormônios, etc.
+
+## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
+(Reflexões sobre sabedoria ancestral aplicada à sua vida)
+
+IMPORTANTE: Ao falar sobre Estoicismo, Budismo, Sikhismo, Existencialismo:
+- NÃO use os nomes das escolas como títulos
+- NÃO assuma que o consulente conhece ou concorda com estas doutrinas
+- Apresente APENAS a SABEDORIA prática contida nelas, de forma genérica
+- Exemplo: em vez de "O Estoicismo ensina...", use "Uma sabedoria antiga nos lembra que existem coisas que dependem de nós e coisas que não dependem..."
+- Exemplo: em vez de "O Budismo diz...", use "Há um ensinamento profundo sobre a impermanência de todas as coisas..."
+
+Cada reflexão deve ter 2-3 parágrafos aplicados diretamente à situação do consulente.
 
 Lembre-se de manter o MESMO TOM acolhedor e profundo da primeira parte, e conectar com o que já foi dito.
 """
@@ -405,51 +391,35 @@ Lembre-se de manter o MESMO TOM acolhedor e profundo da primeira parte, e conect
     def continuar_parte_3(self):
         """Gera a terceira parte mantendo o contexto"""
         prompt = """
-Agora, a TERCEIRA E ÚLTIMA PARTE da sua orientação, contendo:
-
-## O QUE A FILOSOFIA ENSINA SOBRE O SEU MOMENTO
-(5 escolas filosóficas: Estoicismo, Budismo, Sikhismo, Existencialismo, Taoísmo. Para CADA uma: um parágrafo longo explicando o princípio e aplicando diretamente à situação do consulente.)
+Agora, a TERCEIRA E ÚLTIMA PARTE da sua orientação, contendo APENAS estes tópicos:
 
 ## AS ILUSÕES QUE VOCÊ PODE ESTAR ALIMENTANDO
-(6-8 ilusões comuns em relacionamentos. Para CADA: "**Ilusão:** [frase entre aspas]" seguido de 2-3 parágrafos desmontando a ilusão com exemplos práticos.)
+(6-8 ilusões comuns em relacionamentos)
+- Para CADA: "**Ilusão:** [frase entre aspas]" seguido de 2-3 parágrafos
+- Desmonte a ilusão com exemplos práticos e aplicados à situação
+- Mostre o que é realidade vs o que é projeção
 
 ## O QUE VOCÊ PODE FAZER AGORA – AÇÕES CONCRETAS
-(10-12 ações práticas, numeradas. Para CADA: um parágrafo explicativo detalhado sobre como implementar, exemplos do dia a dia, o que esperar.)
+(10-12 ações práticas, numeradas)
+- Para CADA: um parágrafo explicativo detalhado
+- Como implementar no dia a dia
+- Exemplos específicos
+- O que esperar ao colocar em prática
 
 ## PALAVRAS FINAIS
-(Um encerramento poético e empoderador de 5-6 parágrafos, retomando as cartas, oferecendo esperança, e lembrando que a escolha é do consulente. Incluir uma "Nota para o consulente" no final.)
+(Um encerramento poderoso de 4-5 parágrafos)
+- Retome as cartas e a jornada
+- Ofereça esperança e direção
+- Reforce que a escolha é do consulente
+- Inclua uma mensagem espiritual de acolhimento
 
-Finalize com uma mensagem de acolhimento, reforçando que o mentor está disponível para novas reflexões.
+Finalize com uma nota de que o mentor está disponível para novas reflexões, mas que agora a jornada é do consulente.
+
+Lembre-se de manter o tom acolhedor e prático de toda a conversa.
 """
         response = self.chat.send_message(prompt)
         self.historico.append({"role": "mentor", "content": response.text})
         return response.text
-
-# ============================================
-# FUNÇÃO PARA DIVIDIR RESPOSTA EM SEÇÕES
-# ============================================
-def dividir_resposta_em_secoes(texto_completo):
-    """
-    Divide a resposta completa em seções baseadas nos títulos ##
-    """
-    if not texto_completo:
-        return []
-    
-    # Padrão para encontrar títulos ##
-    padrao = r'## (.+?)(?=## |\Z)'
-    matches = re.findall(padrao, texto_completo, re.DOTALL)
-    
-    if not matches:
-        return [{"titulo": "Leitura Completa", "conteudo": texto_completo}]
-    
-    secoes = []
-    for match in matches:
-        linhas = match.strip().split('\n', 1)
-        titulo = linhas[0].replace('##', '').strip()
-        conteudo = linhas[1] if len(linhas) > 1 else ""
-        secoes.append({"titulo": titulo, "conteudo": conteudo})
-    
-    return secoes
 
 # ============================================
 # INTERFACE PRINCIPAL
@@ -469,10 +439,6 @@ def main():
         st.session_state.chat = None
     if 'partes_recebidas' not in st.session_state:
         st.session_state.partes_recebidas = []
-    if 'secoes' not in st.session_state:
-        st.session_state.secoes = []
-    if 'pagina_atual' not in st.session_state:
-        st.session_state.pagina_atual = 0
     if 'carta_atual' not in st.session_state:
         st.session_state.carta_atual = 1
     
@@ -577,11 +543,6 @@ def main():
                                     primeira_parte = chat.iniciar_conversa(st.session_state.cartas, st.session_state.pergunta)
                                     st.session_state.chat = chat
                                     st.session_state.partes_recebidas = [primeira_parte]
-                                    
-                                    # Juntar todas as partes recebidas até agora
-                                    texto_completo = "\n\n".join(st.session_state.partes_recebidas)
-                                    st.session_state.secoes = dividir_resposta_em_secoes(texto_completo)
-                                    
                                     st.session_state.etapa = 'conversa'
                                     st.rerun()
                             else:
@@ -622,11 +583,6 @@ def main():
                             nova_parte = st.session_state.chat.continuar_parte_3()
                         
                         st.session_state.partes_recebidas.append(nova_parte)
-                        
-                        # Atualizar seções
-                        texto_completo = "\n\n".join(st.session_state.partes_recebidas)
-                        st.session_state.secoes = dividir_resposta_em_secoes(texto_completo)
-                        
                         st.rerun()
             
             else:
@@ -635,7 +591,7 @@ def main():
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
                     if st.button("🔄 Nova consulta", use_container_width=True):
-                        for key in ['etapa', 'pergunta', 'cartas', 'chat', 'partes_recebidas', 'secoes', 'pagina_atual', 'carta_atual']:
+                        for key in ['etapa', 'pergunta', 'cartas', 'chat', 'partes_recebidas', 'carta_atual']:
                             if key in st.session_state:
                                 del st.session_state[key]
                         st.rerun()
